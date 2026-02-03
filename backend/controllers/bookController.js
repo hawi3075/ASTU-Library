@@ -1,6 +1,6 @@
 const Book = require('../models/Book');
 
-// @desc    Get all books (Public)
+// @desc    Get all books
 exports.getBooks = async (req, res) => {
     try {
         const books = await Book.find({});
@@ -10,36 +10,31 @@ exports.getBooks = async (req, res) => {
     }
 };
 
-// @desc    Get single book by ID
-exports.getBookById = async (req, res) => {
+// @desc    Get top featured books (REQUIRED FOR THE ROUTE ABOVE)
+exports.getTopBooks = async (req, res) => {
     try {
-        const book = await Book.findById(req.params.id);
-        if (book) {
-            res.json(book);
-        } else {
-            res.status(404).json({ message: 'Book not found' });
-        }
+        const books = await Book.find({}).sort({ totalCopies: -1 }).limit(5);
+        res.json(books);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
-// @desc    Create a book (Admin only)
-exports.createBook = async (req, res) => {
-    const { title, author, isbn, category, totalCopies } = req.body;
+// @desc    Get single book
+exports.getBookById = async (req, res) => {
     try {
-        const bookExists = await Book.findOne({ isbn });
-        if (bookExists) return res.status(400).json({ message: 'Book with this ISBN already exists' });
+        const book = await Book.findById(req.params.id);
+        if (book) res.json(book);
+        else res.status(404).json({ message: 'Book not found' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
 
-        const book = new Book({
-            title,
-            author,
-            isbn,
-            category,
-            totalCopies,
-            availableCopies: totalCopies // Initially, all copies are available
-        });
-
+// @desc    Create book (Admin only)
+exports.createBook = async (req, res) => {
+    try {
+        const book = new Book(req.body);
         const createdBook = await book.save();
         res.status(201).json(createdBook);
     } catch (error) {
@@ -47,27 +42,18 @@ exports.createBook = async (req, res) => {
     }
 };
 
-// @desc    Update a book (Admin only)
+// @desc    Update book (Admin only)
 exports.updateBook = async (req, res) => {
     try {
-        const book = await Book.findById(req.params.id);
-        if (book) {
-            book.title = req.body.title || book.title;
-            book.author = req.body.author || book.author;
-            book.category = req.body.category || book.category;
-            book.totalCopies = req.body.totalCopies || book.totalCopies;
-
-            const updatedBook = await book.save();
-            res.json(updatedBook);
-        } else {
-            res.status(404).json({ message: 'Book not found' });
-        }
+        const updatedBook = await Book.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        if (updatedBook) res.json(updatedBook);
+        else res.status(404).json({ message: 'Book not found' });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
-// @desc    Delete a book (Admin only)
+// @desc    Delete book (Admin only)
 exports.deleteBook = async (req, res) => {
     try {
         const book = await Book.findById(req.params.id);

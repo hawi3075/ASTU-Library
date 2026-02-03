@@ -5,15 +5,17 @@ const {
     getBookById, 
     createBook, 
     updateBook, 
-    deleteBook 
+    deleteBook,
+    getTopBooks // Ensure this is exported in your controller!
 } = require('../controllers/bookController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
-// Public route: anyone can see books
+// Public routes
 router.get('/', getBooks);
+router.get('/top', getTopBooks); // <--- ERROR WAS LIKELY HERE (Line 16)
 router.get('/:id', getBookById);
 
-// Protected Admin routes
+// Admin routes
 router.post('/', protect, admin, createBook);
 router.put('/:id', protect, admin, updateBook);
 router.delete('/:id', protect, admin, deleteBook);

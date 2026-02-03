@@ -1,12 +1,14 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
-const connectDB = require('./config/db.js');
 
-// Load env variables
+// 1. Load env variables FIRST before any other local imports
 dotenv.config();
 
-// Connect to Database
+// 2. Now import connectDB (it will now correctly see process.env.MONGO_URI)
+const connectDB = require('./config/db.js');
+
+// 3. Connect to Database
 connectDB();
 
 const app = express();
@@ -26,14 +28,12 @@ app.get('/', (req, res) => {
 });
 
 // --- ERROR HANDLING MIDDLEWARE ---
-// Handles 404 (Not Found)
 app.use((req, res, next) => {
   const error = new Error(`Not Found - ${req.originalUrl}`);
   res.status(404);
   next(error);
 });
 
-// Handles general errors
 app.use((err, req, res, next) => {
   const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
   res.status(statusCode).json({
