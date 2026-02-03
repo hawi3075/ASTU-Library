@@ -1,0 +1,19 @@
+import axios from 'axios';
+
+const API = axios.create({
+    baseURL: 'http://localhost:5000/api',
+});
+
+// Automatically attach JWT token to every request if the user is logged in
+API.interceptors.request.use((req) => {
+    const userInfo = localStorage.getItem('userInfo') 
+        ? JSON.parse(localStorage.getItem('userInfo')) 
+        : null;
+
+    if (userInfo && userInfo.token) {
+        req.headers.Authorization = `Bearer ${userInfo.token}`;
+    }
+    return req;
+});
+
+export default API;
