@@ -21,7 +21,7 @@ app.use(express.json());
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/books', require('./routes/bookRoutes'));
 app.use('/api/transactions', require('./routes/transactionRoutes'));
-
+app.use('/api/users', require('./routes/userRoutes'));
 // Basic Test Route
 app.get('/', (req, res) => {
   res.send('ASTU Library API is running...');

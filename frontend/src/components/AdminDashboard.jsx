@@ -1,40 +1,61 @@
 import React, { useState, useEffect } from 'react';
 import API from '../services/api';
 import AddBookForm from './AddBookForm';
-import { Users, BookPlus, ClipboardList, ShieldCheck } from 'lucide-react';
+import UserControl from './UserControl'; // Import the new User Control component
+import { Users, BookPlus, ClipboardList, ShieldCheck, LogOut } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 const AdminDashboard = () => {
     const [stats, setStats] = useState({ books: 0, users: 0, transactions: 0 });
 
-    // Fetch quick stats for the dashboard cards
+    const fetchStats = async () => {
+        try {
+            // Fetching all data in parallel for efficiency
+            const [booksRes, usersRes] = await Promise.all([
+                API.get('/books'),
+                API.get('/users')
+            ]);
+            
+            setStats({
+                books: booksRes.data.length,
+                users: usersRes.data.length,
+                transactions: 0 // Update this once transactionRoutes are ready
+            });
+        } catch (error) {
+            console.error("Error loading dashboard stats", error);
+            toast.error("Failed to refresh library stats");
+        }
+    };
+
     useEffect(() => {
-        const fetchStats = async () => {
-            try {
-                const booksRes = await API.get('/books');
-                // You'll need routes for these later
-                // const usersRes = await API.get('/users'); 
-                setStats({
-                    books: booksRes.data.length,
-                    users: 0, // Placeholder
-                    transactions: 0 // Placeholder
-                });
-            } catch (error) {
-                console.error("Error loading dashboard stats", error);
-            }
-        };
         fetchStats();
     }, []);
+
+    const handleLogout = () => {
+        localStorage.removeItem('userInfo');
+        window.location.href = '/login';
+    };
 
     return (
         <div className="min-h-screen bg-gray-50 p-4 md:p-8">
             <div className="max-w-7xl mx-auto">
-                <header className="mb-8">
-                    <div className="flex items-center gap-2 text-blue-700 mb-2">
-                        <ShieldCheck className="w-6 h-6" />
-                        <span className="font-semibold uppercase tracking-wider text-sm">Admin Portal</span>
+                {/* --- Header --- */}
+                <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                    <div>
+                        <div className="flex items-center gap-2 text-blue-700 mb-2">
+                            <ShieldCheck className="w-6 h-6" />
+                            <span className="font-semibold uppercase tracking-wider text-sm">Admin Portal</span>
+                        </div>
+                        <h1 className="text-4xl font-extrabold text-gray-900">Librarian Control Panel</h1>
+                        <p className="text-gray-600">Manage ASTU library assets and monitor student access.</p>
                     </div>
-                    <h1 className="text-4xl font-extrabold text-gray-900">Librarian Control Panel</h1>
-                    <p className="text-gray-600">Manage ASTU library assets and monitor student access.</p>
+                    <button 
+                        onClick={handleLogout}
+                        className="flex items-center gap-2 px-4 py-2 bg-white border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition-colors font-medium"
+                    >
+                        <LogOut className="w-4 h-4" />
+                        Logout
+                    </button>
                 </header>
 
                 {/* --- Stats Overview --- */}
@@ -70,26 +91,34 @@ const AdminDashboard = () => {
                     </div>
                 </div>
 
-                {/* --- Actions Section --- */}
+                {/* --- Main Dashboard Sections --- */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Left: Add New Book Form */}
-                    <div className="lg:col-span-2">
-                        <AddBookForm onBookAdded={() => window.location.reload()} />
+                    {/* Left & Middle Column */}
+                    <div className="lg:col-span-2 space-y-8">
+                        {/* Section 1: Add New Book */}
+                        <AddBookForm onBookAdded={fetchStats} />
+
+                        {/* Section 2: User Control Table */}
+                        <UserControl />
                     </div>
 
-                    {/* Right: Quick Controls / Admin Tools */}
+                    {/* Right Column: Tools */}
                     <div className="space-y-6">
                         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                            <h2 className="text-xl font-bold text-gray-800 mb-4">Quick Actions</h2>
+                            <h2 className="text-xl font-bold text-gray-800 mb-4">Librarian Tools</h2>
                             <div className="space-y-3">
-                                <button className="w-full text-left p-3 rounded-lg hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-all flex items-center gap-3">
-                                    <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                                <button className="w-full text-left p-3 rounded-lg hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-all flex items-center gap-3 group">
+                                    <div className="w-2 h-2 rounded-full bg-blue-500 group-hover:scale-150 transition-transform"></div>
                                     <span className="font-medium">Export Book List (CSV)</span>
                                 </button>
-                                <button className="w-full text-left p-3 rounded-lg hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-all flex items-center gap-3">
-                                    <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                                <button className="w-full text-left p-3 rounded-lg hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-all flex items-center gap-3 group">
+                                    <div className="w-2 h-2 rounded-full bg-red-500 group-hover:scale-150 transition-transform"></div>
                                     <span className="font-medium text-red-600">Flag Overdue Books</span>
                                 </button>
+                                <div className="pt-4 border-t border-gray-100 mt-4">
+                                    <p className="text-xs text-gray-400">System Version 1.0.4</p>
+                                    <p className="text-xs text-gray-400">Connected to: ASTU-DB-Primary</p>
+                                </div>
                             </div>
                         </div>
                     </div>
