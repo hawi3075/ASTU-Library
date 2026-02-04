@@ -5,15 +5,13 @@ import { AuthProvider, AuthContext } from './context/AuthContext';
 import Login from './pages/Login';
 import Home from './pages/Home';
 
-// A simple wrapper to protect routes from unauthenticated users
+// This helper component protects your dashboard
 const ProtectedRoute = ({ children }) => {
   const { user } = React.useContext(AuthContext);
-  
-  // If the user is not logged in, redirect them to the login page
+  // If not logged in, force them to the login page
   if (!user) {
     return <Navigate to="/login" replace />;
   }
-
   return children;
 };
 
@@ -21,14 +19,14 @@ function App() {
   return (
     <AuthProvider>
       <Router>
-        {/* Toaster provides the popup notifications for your login success/errors */}
-        <Toaster position="top-right" reverseOrder={false} />
+        {/* Toaster enables those success/error popups you added */}
+        <Toaster position="top-right" />
         
         <Routes>
-          {/* Public Route */}
+          {/* 1. Login Page */}
           <Route path="/login" element={<Login />} />
 
-          {/* Protected Routes - Only accessible after login */}
+          {/* 2. Protected Home Page (Dashboard) */}
           <Route 
             path="/" 
             element={
@@ -38,7 +36,7 @@ function App() {
             } 
           />
 
-          {/* Catch-all: Redirect unknown paths to login or home */}
+          {/* 3. Automatic Redirect for any other path */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
