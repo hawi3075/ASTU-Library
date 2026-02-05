@@ -2,14 +2,16 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, AuthContext } from './context/AuthContext';
-import Landing from './pages/Landing'; // Import the new Landing page
+import Landing from './pages/Landing'; 
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Home from './pages/Home';
 
-// ProtectedRoute ensures only logged-in users reach the dashboard
+// ProtectedRoute: Redirects to login if NOT authenticated
 const ProtectedRoute = ({ children }) => {
-  const { user } = React.useContext(AuthContext);
+  const { user, loading } = React.useContext(AuthContext);
+  
+  if (loading) return <div className="flex h-screen items-center justify-center">Loading...</div>;
   
   if (!user) {
     return <Navigate to="/login" replace />;
@@ -17,21 +19,27 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
+// PublicRoute: Redirects to dashboard if ALREADY authenticated
+const PublicRoute = ({ children }) => {
+  const { user } = React.useContext(AuthContext);
+  return user ? <Navigate to="/dashboard" replace /> : children;
+};
+
 function App() {
   return (
     <AuthProvider>
       <Router>
-        <Toaster position="top-right" />
+        <Toaster position="top-center" reverseOrder={false} />
         
         <Routes>
-          {/* 1. Public Landing Page - Now the starting point */}
+          {/* Public Landing Page */}
           <Route path="/" element={<Landing />} />
 
-          {/* 2. Authentication Routes */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          {/* Authentication Routes - Protected from logged-in users */}
+          <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+          <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
 
-          {/* 3. Protected Dashboard - Users are redirected here after login */}
+          {/* Protected Dashboard */}
           <Route 
             path="/dashboard" 
             element={
@@ -41,7 +49,7 @@ function App() {
             } 
           />
 
-          {/* 4. Catch-all: Redirect unknown paths back to Landing */}
+          {/* Catch-all */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>

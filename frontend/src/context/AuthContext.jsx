@@ -1,26 +1,32 @@
 import React, { createContext, useState, useEffect } from 'react';
 
+// 1. Create and EXPORT the context object so other files can use it
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-    // 1. Initialize state from localStorage so refresh doesn't wipe it
-    const [user, setUser] = useState(() => {
-        const savedUser = localStorage.getItem('userInfo');
-        return savedUser ? JSON.parse(savedUser) : null;
-    });
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const storedUser = localStorage.getItem('userInfo');
+        if (storedUser) {
+            setUser(JSON.parse(storedUser));
+        }
+        setLoading(false);
+    }, []);
 
     const login = (userData) => {
-        setUser(userData);
         localStorage.setItem('userInfo', JSON.stringify(userData));
+        setUser(userData);
     };
 
     const logout = () => {
-        setUser(null);
         localStorage.removeItem('userInfo');
+        setUser(null);
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, logout }}>
+        <AuthContext.Provider value={{ user, login, logout, loading }}>
             {children}
         </AuthContext.Provider>
     );

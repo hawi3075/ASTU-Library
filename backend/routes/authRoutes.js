@@ -1,25 +1,19 @@
 const express = require('express');
 const router = express.Router();
+const { registerUser, loginUser } = require('../controllers/authController');
 
-// Temporary mock login to test your frontend
-router.post('/login', async (req, res) => {
-    const { email, password } = req.body;
-    
-    // For now, let's allow any login to succeed so you can see the Dashboard
-    if (email && password) {
-        return res.status(200).json({
-            _id: "1",
-            name: "ASTU Student",
-            email: email,
-            token: "mock-token-for-testing"
-        });
-    }
+/**
+ * @desc    Register a new ASTU Student/Admin
+ * @route   POST /api/auth/register
+ * @access  Public
+ */
+router.post('/register', registerUser);
 
-    res.status(401).json({ message: "Invalid credentials" });
-});
-
-router.post('/register', (req, res) => {
-    res.status(201).json({ message: "Register successful" });
-});
+/**
+ * @desc    Authenticate user & get token
+ * @route   POST /api/auth/login
+ * @access  Public
+ */
+router.post('/login', loginUser);
 
 module.exports = router;

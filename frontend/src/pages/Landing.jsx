@@ -1,111 +1,165 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Book, ShieldCheck, Globe, Mail, Phone, MapPin } from 'lucide-react';
+import { 
+    ShieldCheck, Globe, Mail, Phone, MapPin, Building2, 
+    BookOpen, ChevronRight, Zap, Atom, Sigma, Cpu, FlaskConical 
+} from 'lucide-react';
+import logo from '../assets/LOGO 2.PNG';
 
 const Landing = () => {
     const navigate = useNavigate();
 
+    const collectionPreview = [
+        { 
+            title: "Physics for Scientists", 
+            author: "Serway & Jewett", 
+            icon: <Atom className="w-16 h-16 text-white/90" />, 
+            gradient: "from-blue-600 to-indigo-500",
+            pattern: "bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white/10 to-transparent",
+            tag: "Engineering" 
+        },
+        { 
+            title: "Applied Mathematics", 
+            author: "K.A. Stroud", 
+            icon: <Sigma className="w-16 h-16 text-white/90" />, 
+            gradient: "from-emerald-600 to-teal-500",
+            pattern: "bg-[repeating-linear-gradient(45deg,_transparent,_transparent_10px,_rgba(255,255,255,0.05)_10px,_rgba(255,255,255,0.05)_20px)]",
+            tag: "Mathematics" 
+        },
+        { 
+            title: "Digital Logic Design", 
+            author: "M. Morris Mano", 
+            icon: <Cpu className="w-16 h-16 text-white/90" />, 
+            gradient: "from-orange-500 to-amber-500",
+            pattern: "bg-[linear-gradient(to_right,_rgba(255,255,255,0.1)_1px,_transparent_1px),_linear-gradient(to_bottom,_rgba(255,255,255,0.1)_1px,_transparent_1px)] bg-[size:20px_20px]",
+            tag: "Computing" 
+        },
+        { 
+            title: "University Chemistry", 
+            author: "Raymond Chang", 
+            icon: <FlaskConical className="w-16 h-16 text-white/90" />, 
+            gradient: "from-rose-600 to-red-500",
+            pattern: "bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.1)_0%,_transparent_50%)]",
+            tag: "Science" 
+        }
+    ];
+
     return (
-        <div className="min-h-screen bg-white flex flex-col">
+        <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
             {/* --- Hero Section --- */}
-            <header className="relative bg-gradient-to-r from-blue-900 to-indigo-800 py-20 px-6 text-white text-center">
-                <div className="max-w-4xl mx-auto">
-                    <Book className="w-16 h-16 mx-auto mb-6 opacity-80" />
-                    <h1 className="text-5xl md:text-6xl font-black tracking-tight mb-6">
+            <header className="relative bg-[#1e40af] py-16 px-6 text-white text-center overflow-hidden">
+                <div className="max-w-5xl mx-auto relative z-10">
+                    <img src={logo} alt="ASTU" className="h-24 w-auto mx-auto mb-6 drop-shadow-2xl" />
+                    
+                    <h1 className="text-5xl md:text-7xl font-black mb-4 tracking-tight drop-shadow-sm uppercase">
                         ASTU Digital Library
                     </h1>
-                    <p className="text-xl md:text-2xl text-blue-100 mb-10 max-w-2xl mx-auto font-light">
-                        Access thousands of academic resources, research papers, and textbooks 
-                        specifically curated for the ASTU community.
+                    <p className="text-xl md:text-2xl text-blue-100 mb-12 font-light italic opacity-90">
+                        "We are dedicated to innovative knowledge."
                     </p>
-                    <div className="flex flex-col sm:flex-row justify-center gap-4">
+
+                    <div className="flex flex-col sm:flex-row justify-center gap-6">
                         <button 
                             onClick={() => navigate('/login')}
-                            className="px-8 py-4 bg-white text-blue-900 font-bold rounded-xl hover:bg-blue-50 transition-all shadow-lg text-lg"
+                            className="group px-12 py-4 bg-white text-blue-700 font-black rounded-full shadow-2xl hover:scale-105 transition-all flex items-center justify-center gap-2"
                         >
-                            Sign In
+                            SIGN IN <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                         </button>
+                        
                         <button 
                             onClick={() => navigate('/register')}
-                            className="px-8 py-4 bg-transparent border-2 border-white text-white font-bold rounded-xl hover:bg-white/10 transition-all text-lg"
+                            className="group flex items-center justify-center gap-2 px-12 py-4 bg-transparent border-2 border-white text-white font-black rounded-full hover:bg-white/10 transition-all shadow-xl"
                         >
-                            Create Account
+                            <Zap className="w-5 h-5 text-yellow-400" />
+                            JOIN NOW
                         </button>
                     </div>
                 </div>
-                {/* Decorative Pattern Overlay */}
-                <div className="absolute inset-0 opacity-10 pointer-events-none overflow-hidden">
+
+                <div className="absolute inset-0 opacity-10 pointer-events-none">
                     <Globe className="absolute -bottom-20 -right-20 w-96 h-96" />
                 </div>
             </header>
 
-            {/* --- Middle Section: Info & Contact --- */}
-            <section className="flex-grow py-20 px-6 bg-gray-50">
+            {/* --- Book Collection Showcase --- */}
+            <section className="py-20 px-6">
                 <div className="max-w-6xl mx-auto">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
-                        {/* Information Text */}
+                    <div className="flex items-end justify-between mb-12 border-l-4 border-blue-600 pl-6">
                         <div>
-                            <h2 className="text-3xl font-bold text-gray-900 mb-6">Empowering Education through Innovation</h2>
-                            <p className="text-gray-600 text-lg leading-relaxed mb-6">
-                                The ASTU Digital Library serves as the central hub for knowledge. 
-                                Our mission is to provide students and faculty with seamless 
-                                access to information that drives research and academic excellence 
-                                in Science and Technology.
-                            </p>
-                            <div className="space-y-4">
-                                <div className="flex items-center gap-4 text-gray-700">
-                                    <div className="p-2 bg-blue-100 rounded-lg text-blue-600"><ShieldCheck className="w-5 h-5"/></div>
-                                    <span className="font-medium">Secure Admin & Student Portals</span>
-                                </div>
-                                <div className="flex items-center gap-4 text-gray-700">
-                                    <div className="p-2 bg-indigo-100 rounded-lg text-indigo-600"><Globe className="w-5 h-5"/></div>
-                                    <span className="font-medium">24/7 Access to Digital Collections</span>
-                                </div>
-                            </div>
+                            <h2 className="text-4xl font-black text-slate-900 mb-2">Academic Core</h2>
+                            <p className="text-slate-500 font-bold uppercase tracking-widest text-sm">Essential Resources for Students</p>
                         </div>
+                    </div>
 
-                        {/* Contact Card */}
-                        <div className="bg-white p-8 rounded-3xl shadow-xl border border-gray-100">
-                            <h3 className="text-2xl font-bold text-gray-900 mb-6">Contact & Support</h3>
-                            <div className="space-y-6">
-                                <div className="flex items-start gap-4">
-                                    <Mail className="w-6 h-6 text-blue-600 mt-1" />
-                                    <div>
-                                        <p className="font-bold text-gray-800">Email Us</p>
-                                        <p className="text-gray-600">library.support@astu.edu.et</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                        {collectionPreview.map((book, idx) => (
+                            <div key={idx} className="group bg-white rounded-[2.5rem] shadow-xl border border-slate-100 p-4 hover:-translate-y-3 transition-all duration-300">
+                                <div className={`relative bg-gradient-to-br ${book.gradient} aspect-[3/4] rounded-[2rem] mb-6 shadow-lg overflow-hidden flex flex-col items-center justify-center`}>
+                                    <div className={`absolute inset-0 ${book.pattern}`}></div>
+                                    <div className="relative z-10 p-6 bg-white/10 backdrop-blur-md rounded-3xl border border-white/20 shadow-2xl group-hover:scale-110 transition-transform">
+                                        {book.icon}
+                                    </div>
+                                    <div className="absolute top-4 left-4 px-3 py-1 bg-black/20 backdrop-blur-md text-[10px] font-black text-white rounded-full uppercase tracking-widest border border-white/10">
+                                        {book.tag}
                                     </div>
                                 </div>
-                                <div className="flex items-start gap-4">
-                                    <Phone className="w-6 h-6 text-blue-600 mt-1" />
-                                    <div>
-                                        <p className="font-bold text-gray-800">Phone</p>
-                                        <p className="text-gray-600">+251 (0) 222 11 00 00</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-start gap-4">
-                                    <MapPin className="w-6 h-6 text-blue-600 mt-1" />
-                                    <div>
-                                        <p className="font-bold text-gray-800">Location</p>
-                                        <p className="text-gray-600">Adama Science and Technology University,<br/>Adama, Ethiopia</p>
-                                    </div>
+                                <div className="px-2 pb-2">
+                                    <h4 className="font-black text-slate-800 text-lg leading-tight mb-2 group-hover:text-blue-600 transition-colors">
+                                        {book.title}
+                                    </h4>
+                                    <p className="text-xs text-slate-400 font-black uppercase tracking-widest">{book.author}</p>
                                 </div>
                             </div>
-                        </div>
+                        ))}
                     </div>
                 </div>
             </section>
 
-            {/* --- Restricted Footer --- */}
-            <footer className="bg-white py-10 border-t border-gray-100">
-                <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
-                    <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-blue-900 rounded-md flex items-center justify-center text-white font-bold">A</div>
-                        <span className="font-bold text-gray-900 uppercase tracking-widest text-sm">ASTU Library System</span>
+            {/* --- University Contacts Section --- */}
+            <section className="py-20 px-6 bg-white">
+                <div className="max-w-6xl mx-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        
+                        {/* International Relations Office */}
+                        <div className="p-10 rounded-[3rem] bg-blue-50 border-2 border-blue-100 group hover:bg-blue-600 transition-all duration-500 cursor-default shadow-sm hover:shadow-2xl">
+                            <Building2 className="w-12 h-12 text-blue-600 mb-6 group-hover:text-white transition-colors" />
+                            <h3 className="text-2xl font-black text-slate-900 group-hover:text-white mb-6 transition-colors">
+                                International Relations
+                            </h3>
+                            <div className="space-y-4 text-slate-600 group-hover:text-blue-50 font-medium transition-colors">
+                                <p className="flex items-center gap-3"><Phone className="w-5 h-5 opacity-70"/> +251-22-211-3961</p>
+                                <p className="flex items-center gap-3"><Mail className="w-5 h-5 opacity-70"/> irccd@astu.edu.et</p>
+                                <p className="flex items-center gap-3"><MapPin className="w-5 h-5 opacity-70"/> P.O.Box: 1888 Adama, Ethiopia</p>
+                            </div>
+                        </div>
+
+                        {/* Office of Registrar */}
+                        <div className="p-10 rounded-[3rem] bg-slate-50 border-2 border-slate-100 group hover:bg-blue-600 transition-all duration-500 cursor-default shadow-sm hover:shadow-2xl">
+                            <div>
+                                <ShieldCheck className="w-12 h-12 text-red-600 mb-6 group-hover:text-white transition-colors" />
+                                <h3 className="text-2xl font-black text-slate-900 group-hover:text-white mb-4 tracking-tight transition-colors">
+                                    Office of Registrar
+                                </h3>
+                                <div className="space-y-1 text-slate-600 group-hover:text-blue-50 font-bold transition-colors">
+                                    <p>Phone: +251-221-100001</p>
+                                    <p>Email: sar@astu.edu.et</p>
+                                </div>
+                            </div>
+                            
+                            
+                        </div>
+
                     </div>
-                    <p className="text-gray-400 text-sm">
-                        &copy; {new Date().getFullYear()} ASTU ICT Directorate. 
-                        <span className="mx-2">|</span> 
-                        <span className="text-red-500 font-medium">Access Restricted to Authorized Personnel Only.</span>
+                </div>
+            </section>
+
+            {/* --- Professional Footer --- */}
+            <footer className="py-12 bg-slate-900 text-white text-center">
+                <div className="flex flex-col items-center gap-6">
+                    <img src={logo} alt="ASTU" className="h-12 w-auto brightness-200" />
+                    <div className="w-24 h-1 bg-blue-600 rounded-full"></div>
+                    <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.4em]">
+                        &copy; 2026 ASTU LIBRARY DIRECTORATE | ADAMA, ETHIOPIA
                     </p>
                 </div>
             </footer>
