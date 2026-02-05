@@ -1,24 +1,35 @@
+const User = require('../models/User');
+const jwt = require('jsonwebtoken');
+
+// Helper to create Token
+const generateToken = (id) => {
+    return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
+};
+
 exports.registerUser = async (req, res) => {
-    const { name, email, password, role, idNumber } = req.body;
+    try {
+        const { name, email, password, role, idNumber } = req.body;
 
-    const userExists = await User.findOne({ email });
-    if (userExists) return res.status(400).json({ message: 'User already exists' });
+        const userExists = await User.findOne({ email });
+        if (userExists) return res.status(400).json({ message: 'User already exists' });
 
-    const user = await User.create({
-        name,
-        email,
-        password,
-        role: role || 'student', // Defaults to student if not specified
-        idNumber
-    });
+        // This now saves the role (admin/student) and the ASTU ID
+        const user = await User.create({
+            name,
+            email,
+            password,
+            role: role || 'student', 
+            idNumber
+        });
 
-    if (user) {
         res.status(201).json({
             _id: user._id,
             name: user.name,
             email: user.email,
-            role: user.role, // Essential for frontend redirection
+            role: user.role,
             token: generateToken(user._id),
         });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
 };
