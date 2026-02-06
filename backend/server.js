@@ -1,11 +1,12 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
+const path = require('path'); // Added for file path handling
 
-// 1. Load env variables FIRST before any other local imports
+// 1. Load env variables
 dotenv.config();
 
-// 2. Now import connectDB (it will now correctly see process.env.MONGO_URI)
+// 2. Import connectDB
 const connectDB = require('./config/db.js');
 
 // 3. Connect to Database
@@ -13,15 +14,20 @@ connectDB();
 
 const app = express();
 
-// Middleware
+// --- MIDDLEWARE ---
 app.use(cors());
 app.use(express.json());
+
+// 📁 STATIC FOLDER FOR UPLOADS
+// This allows students to access PDFs via http://localhost:5000/uploads/filename.pdf
+app.use('/uploads', express.static(path.join(__dirname, '/uploads')));
 
 // --- ROUTES ---
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/books', require('./routes/bookRoutes'));
 app.use('/api/transactions', require('./routes/transactionRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
+
 // Basic Test Route
 app.get('/', (req, res) => {
   res.send('ASTU Library API is running...');
