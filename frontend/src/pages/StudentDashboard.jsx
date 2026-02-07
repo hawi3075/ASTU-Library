@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Search, Book, Star } from 'lucide-react';
 import StudentNavbar from '../components/StudentNavbar';
 
-const StudentDashboard = ({ books, setBooks }) => {
+const StudentDashboard = ({ books = [], setBooks }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Toggle Important
   const toggleImportant = (id) => {
-    setBooks(
-      books.map((book) =>
+    setBooks((prevBooks) =>
+      prevBooks.map((book) =>
         book.id === id
           ? { ...book, isImportant: !book.isImportant }
           : book
@@ -16,13 +16,14 @@ const StudentDashboard = ({ books, setBooks }) => {
     );
   };
 
-  // Search Filter
-  const filteredBooks = books.filter((book) =>
-    [book.title, book.author, book.category]
-      .join(' ')
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase())
-  );
+  // Search Filter (Optimized)
+  const filteredBooks = useMemo(() => {
+    return books.filter((book) =>
+      `${book.title} ${book.author} ${book.category}`
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase())
+    );
+  }, [books, searchQuery]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 text-slate-900">
@@ -90,6 +91,7 @@ const StudentDashboard = ({ books, setBooks }) => {
                 </span>
 
                 <button
+                  aria-label="Mark as important"
                   onClick={() => toggleImportant(book.id)}
                   className="p-2 rounded-full hover:bg-slate-100 active:scale-75 transition"
                 >
