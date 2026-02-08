@@ -1,7 +1,8 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
-const path = require('path'); // Added for file path handling
+const path = require('path');
+const fs = require('fs'); // Added to check for directories
 
 // 1. Load env variables
 dotenv.config();
@@ -15,14 +16,21 @@ connectDB();
 const app = express();
 
 // --- MIDDLEWARE ---
-app.use(cors());
+app.use(cors()); 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true })); // Added to handle form data better
+
+// 📁 ENSURE UPLOADS FOLDER EXISTS
+const uploadDir = path.join(__dirname, '/uploads');
+if (!fs.existsSync(uploadDir)){
+    fs.mkdirSync(uploadDir);
+}
 
 // 📁 STATIC FOLDER FOR UPLOADS
-// This allows students to access PDFs via http://localhost:5000/uploads/filename.pdf
-app.use('/uploads', express.static(path.join(__dirname, '/uploads')));
+app.use('/uploads', express.static(uploadDir));
 
 // --- ROUTES ---
+// These match exactly with your folder structure in image_ce9e2a.png
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/books', require('./routes/bookRoutes'));
 app.use('/api/transactions', require('./routes/transactionRoutes'));

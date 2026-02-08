@@ -1,43 +1,65 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, ChevronLeft, AlertCircle } from 'lucide-react';
+import { Mail, Lock, ChevronLeft, AlertCircle, Eye, EyeOff } from 'lucide-react'; 
 import logo from '../assets/LOGO 2.PNG';
 
-const Login = ({ users }) => {
+const Login = ({ setCurrentUser }) => {
   const navigate = useNavigate();
 
   // State
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  // Login Logic
-  const handleLogin = (e) => {
+  // --- 🌐 DATABASE LOGIN LOGIC ---
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
-    const normalizedEmail = email.trim().toLowerCase();
+    try {
+      const response = await fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          password: password,
+        }),
+      });
 
-    const user = users.find(
-      (u) => u.email === normalizedEmail && u.password === password
-    );
+      const data = await response.json();
 
-    if (!user) {
-      setError('Invalid email or password. Please try again.');
-      return;
-    }
+      if (response.ok) {
+        // 1. Save user data to App state
+        setCurrentUser(data.user);
 
-    // Role-based redirect
-    if (user.role === 'admin') {
-      navigate('/admin/dashboard');
-    } else {
-      navigate('/dashboard');
+        // 2. Save to localStorage to persist the session
+        localStorage.setItem('user', JSON.stringify(data.user));
+
+        // 3. Role-based redirect
+        if (data.user.role === 'admin') {
+          navigate('/admin/dashboard');
+        } else {
+          navigate('/dashboard');
+        }
+      } else {
+        // Displays "Invalid email or password" or other backend messages
+        setError(data.message || 'Login failed. Please check your credentials.');
+      }
+    } catch (err) {
+      console.error("Login connection error:", err);
+      setError('Cannot connect to server. Ensure your backend is running on port 5000.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-6 relative">
-      {/* Background glow */}
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="w-[500px] h-[500px] bg-blue-50 rounded-full blur-3xl opacity-60"></div>
       </div>
@@ -87,20 +109,29 @@ const Login = ({ users }) => {
             <div className="relative">
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-300" size={18} />
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="Password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 ring-blue-500/20 font-medium transition"
+                className="w-full pl-12 pr-12 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 ring-blue-500/20 font-medium transition"
               />
+              
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-blue-300 hover:text-blue-600 transition p-1"
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
             </div>
 
             <button
               type="submit"
-              className="w-full py-5 bg-blue-600 text-white font-black rounded-2xl shadow-lg shadow-blue-100 hover:bg-blue-700 transition active:scale-95 uppercase italic"
+              disabled={loading}
+              className={`w-full py-5 bg-blue-600 text-white font-black rounded-2xl shadow-lg shadow-blue-100 transition active:scale-95 uppercase italic ${loading ? 'opacity-70 cursor-not-allowed' : 'hover:bg-blue-700'}`}
             >
-              Access Library
+              {loading ? 'Verifying...' : 'Access Library'}
             </button>
 
             <p className="text-center font-bold text-sm text-slate-400">
