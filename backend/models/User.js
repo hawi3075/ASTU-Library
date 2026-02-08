@@ -12,8 +12,7 @@ const userSchema = new mongoose.Schema({
     required: [true, 'Please add an email'],
     unique: true,
     lowercase: true,
-    trim: true,
-    match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Please add a valid email']
+    trim: true
   },
   password: {
     type: String,
@@ -23,14 +22,11 @@ const userSchema = new mongoose.Schema({
   idNumber: {
     type: String,
     required: [true, 'Please add an ASTU ID'],
-    unique: true,
-    uppercase: true
+    unique: true
   },
-  // --- 🌟 UPDATED DEPARTMENT FIELD 🌟 ---
   department: {
     type: String,
-    required: [true, 'Please select a department'],
-    // Default removed so it only saves what the user chooses in the form
+    required: [true, 'Please select a department'] // No default, forces user choice
   },
   role: {
     type: String,
@@ -40,20 +36,12 @@ const userSchema = new mongoose.Schema({
   location: {
     type: String,
     default: "Adama, Ethiopia"
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
   }
-}, {
-  timestamps: true
-});
+}, { timestamps: true });
 
-// ENCRYPTION: This hashes the password before saving to MongoDB
+// Hash password before saving to DB
 userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) {
-    next();
-  }
+  if (!this.isModified('password')) next();
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
 });
