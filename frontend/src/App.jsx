@@ -5,35 +5,37 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import Dashboard from './pages/Dashboard'; // Admin Dashboard
+import Dashboard from './pages/Dashboard'; 
 import AddBook from './pages/AddBook';
 import StudentDashboard from './pages/StudentDashboard';
 import Profile from './pages/Profile';
 import ImportantBooks from './pages/ImportantBooks';
 
 function App() {
-  // --- 👤 USER STATE ---
-  // Initial admin user. New students from Register.jsx will be added here.
   const [users, setUsers] = useState([
     { name: "Admin User", email: "admin@astu.edu.et", password: "123", role: "admin" }
   ]);
 
-  // SESSION STATE: Tracks the specific user currently logged in (Hawi or Admin)
   const [currentUser, setCurrentUser] = useState(null);
-
-  // --- 📚 BOOK STATE ---
-  // This starts empty and gets filled by your MongoDB Atlas database
   const [books, setBooks] = useState([]);
 
-  // --- 🌐 BACKEND INTEGRATION: Fetch Books from MongoDB ---
-  // This runs as soon as the app starts
+  // --- 🛠️ SESSION PERSISTENCE (ADD THIS) ---
+  useEffect(() => {
+    // When the app starts, check if a user is saved in the browser
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      setCurrentUser(JSON.parse(savedUser));
+    }
+  }, []);
+
+  // --- 🌐 FETCH BOOKS ---
   useEffect(() => {
     const fetchBooks = async () => {
       try {
         const response = await fetch('http://localhost:5000/api/books');
         if (response.ok) {
           const data = await response.json();
-          setBooks(data); // Updates the UI with books from your database
+          setBooks(data);
         }
       } catch (error) {
         console.error("Backend Error: Ensure your server.js is running on port 5000");
@@ -45,16 +47,14 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Public Landing Page */}
         <Route path="/" element={<Landing />} />
         
-        {/* LOGIN: We pass setCurrentUser so Login.jsx can "save" the person who logs in */}
+        {/* Pass setCurrentUser to Login */}
         <Route 
           path="/login" 
           element={<Login users={users} setCurrentUser={setCurrentUser} />} 
         />
         
-        {/* REGISTER: We pass setUsers so new students are added to your list */}
         <Route 
           path="/register" 
           element={<Register users={users} setUsers={setUsers} />} 
@@ -73,13 +73,13 @@ function App() {
         {/* --- 🎓 STUDENT ROUTES --- */}
         <Route 
           path="/dashboard" 
-          element={<StudentDashboard books={books} setBooks={setBooks} />} 
+          element={<StudentDashboard books={books} setBooks={setBooks} currentUser={currentUser} />} 
         />
         
-        {/* PROFILE: Now dynamic! Pass currentUser to show Hawi's or Admin's details */}
+        {/* PROFILE: Pass setCurrentUser so you can handle Logout inside Profile if needed */}
         <Route 
           path="/profile" 
-          element={<Profile currentUser={currentUser} />} 
+          element={<Profile currentUser={currentUser} setCurrentUser={setCurrentUser} />} 
         />
         
         <Route 
