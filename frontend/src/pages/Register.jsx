@@ -11,13 +11,22 @@ const Register = () => {
     email: '',
     password: '',
     idNumber: '',
-    department: '', // Added department to state
+    department: '', // Initialized as empty
   });
 
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleRegister = async (e) => {
     e.preventDefault();
+    
+    // Final check for department before sending
+    if (!formData.department) {
+        alert("Please select a department from the list.");
+        return;
+    }
+
+    setLoading(true);
 
     try {
       const response = await fetch('http://localhost:5000/api/auth/register', {
@@ -30,22 +39,25 @@ const Register = () => {
           email: formData.email.trim().toLowerCase(),
           password: formData.password,
           idNumber: formData.idNumber,
-          department: formData.department, // Sending dynamic department
-          role: 'student'
+          department: formData.department,
+          role: 'student' // Default role
         }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        alert('Registration successful! You can now log in.');
+        alert('Registration successful! Use your new password to log in.');
         navigate('/login');
       } else {
+        // This will now show the specific "department" error if it fails
         alert(data.message || 'Registration failed');
       }
     } catch (err) {
       console.error("Connection error:", err);
       alert('Could not connect to the server. Is your backend running?');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -101,11 +113,12 @@ const Register = () => {
               />
             </div>
 
-            {/* Department Dropdown */}
+            {/* Department Dropdown - FIXED LOGIC */}
             <div className="relative">
               <BookOpen className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-300" size={18} />
               <select
                 required
+                name="department"
                 value={formData.department}
                 onChange={(e) => setFormData({ ...formData, department: e.target.value })}
                 className="w-full pl-12 pr-10 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 ring-blue-500/20 transition appearance-none text-slate-600 font-medium cursor-pointer"
@@ -136,14 +149,14 @@ const Register = () => {
               />
             </div>
 
-            {/* Password */}
+            {/* Password - Ensure users enter 6+ chars */}
             <div className="relative">
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-300" size={18} />
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="Create Password (min 6 chars)"
                 required
-                minLength={6}
+                minLength={6} 
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 className="w-full pl-12 pr-12 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 ring-blue-500/20 transition"
@@ -159,9 +172,10 @@ const Register = () => {
 
             <button
               type="submit"
-              className="w-full py-5 bg-slate-900 text-white font-black rounded-2xl shadow-xl hover:bg-black transition active:scale-95 uppercase italic mt-4"
+              disabled={loading}
+              className={`w-full py-5 bg-slate-900 text-white font-black rounded-2xl shadow-xl transition active:scale-95 uppercase italic mt-4 ${loading ? 'opacity-50' : 'hover:bg-black'}`}
             >
-              Register Now
+              {loading ? 'Processing...' : 'Register Now'}
             </button>
 
             <p className="text-center font-bold text-sm text-slate-400">

@@ -12,23 +12,25 @@ import Profile from './pages/Profile';
 import ImportantBooks from './pages/ImportantBooks';
 
 function App() {
-  const [users, setUsers] = useState([
-    { name: "Admin User", email: "admin@astu.edu.et", password: "123", role: "admin" }
-  ]);
-
+  // SESSION STATE
   const [currentUser, setCurrentUser] = useState(null);
+  // BOOK STATE
   const [books, setBooks] = useState([]);
 
-  // --- 🛠️ SESSION PERSISTENCE (ADD THIS) ---
+  // --- 🛠️ SESSION PERSISTENCE ---
   useEffect(() => {
-    // When the app starts, check if a user is saved in the browser
     const savedUser = localStorage.getItem('user');
     if (savedUser) {
-      setCurrentUser(JSON.parse(savedUser));
+      try {
+        setCurrentUser(JSON.parse(savedUser));
+      } catch (err) {
+        console.error("Session recovery failed");
+        localStorage.removeItem('user');
+      }
     }
   }, []);
 
-  // --- 🌐 FETCH BOOKS ---
+  // --- 🌐 FETCH BOOKS FROM MONGODB ---
   useEffect(() => {
     const fetchBooks = async () => {
       try {
@@ -38,7 +40,7 @@ function App() {
           setBooks(data);
         }
       } catch (error) {
-        console.error("Backend Error: Ensure your server.js is running on port 5000");
+        console.error("Backend Error: Ensure server.js is running on port 5000");
       }
     };
     fetchBooks();
@@ -49,21 +51,20 @@ function App() {
       <Routes>
         <Route path="/" element={<Landing />} />
         
-        {/* Pass setCurrentUser to Login */}
         <Route 
           path="/login" 
-          element={<Login users={users} setCurrentUser={setCurrentUser} />} 
+          element={<Login setCurrentUser={setCurrentUser} />} 
         />
         
         <Route 
           path="/register" 
-          element={<Register users={users} setUsers={setUsers} />} 
+          element={<Register />} 
         />
 
         {/* --- 🛡️ ADMIN ROUTES --- */}
         <Route 
           path="/admin/dashboard" 
-          element={<Dashboard users={users} setUsers={setUsers} books={books} setBooks={setBooks} />} 
+          element={<Dashboard books={books} setBooks={setBooks} currentUser={currentUser} />} 
         />
         <Route 
           path="/admin/add-book" 
@@ -76,7 +77,6 @@ function App() {
           element={<StudentDashboard books={books} setBooks={setBooks} currentUser={currentUser} />} 
         />
         
-        {/* PROFILE: Pass setCurrentUser so you can handle Logout inside Profile if needed */}
         <Route 
           path="/profile" 
           element={<Profile currentUser={currentUser} setCurrentUser={setCurrentUser} />} 
@@ -84,7 +84,7 @@ function App() {
         
         <Route 
           path="/important" 
-          element={<ImportantBooks books={books} setBooks={setBooks} />} 
+          element={<ImportantBooks books={books} setBooks={setBooks} currentUser={currentUser} />} 
         />
       </Routes>
     </Router>
