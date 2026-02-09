@@ -17,7 +17,7 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: [true, 'Please add a password'],
-    minlength: 6 // Requires 6+ characters
+    minlength: 6 // This blocks passwords like "123"
   },
   idNumber: {
     type: String,
@@ -26,7 +26,7 @@ const userSchema = new mongoose.Schema({
   },
   department: {
     type: String,
-    required: [true, 'Please select a department'] // Field causing the error
+    required: [true, 'Please select a department'] 
   },
   role: {
     type: String,
@@ -39,19 +39,23 @@ const userSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-// Hash password before saving to DB
+// --- FIXED MIDDLEWARE ---
 userSchema.pre('save', async function (next) {
-  // Check if password was changed
+  // 1. Only hash if the password is new or being changed
   if (!this.isModified('password')) {
-    return next(); // Correctly invokes the next middleware
+    return next(); 
   }
 
   try {
-    const salt = await bcrypt.hashSync(this.password, 10); // Using standard sync for reliability
-    this.password = salt;
+    // 2. Use asynchronous salt and hash for better performance/compatibility
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    
+    // 3. Explicitly call next() to finish the cycle
     next(); 
   } catch (error) {
-    next(error); // Passes the error to the controller
+    // 4. Pass errors to the controller to see them in the browser alert
+    next(error); 
   }
 });
 
