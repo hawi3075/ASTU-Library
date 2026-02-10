@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Mail, Lock, ChevronLeft, Fingerprint, Eye, EyeOff, BookOpen } from 'lucide-react';
+// ✅ IMPORT your updated Axios instance
+import API from '../services/api'; 
 import logo from '../assets/LOGO 2.PNG';
 
 const Register = () => {
@@ -11,7 +13,7 @@ const Register = () => {
     email: '',
     password: '',
     idNumber: '',
-    department: '', // Initialized as empty
+    department: '', 
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -20,7 +22,6 @@ const Register = () => {
   const handleRegister = async (e) => {
     e.preventDefault();
     
-    // Final check for department before sending
     if (!formData.department) {
         alert("Please select a department from the list.");
         return;
@@ -29,33 +30,25 @@ const Register = () => {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      // ✅ CHANGED: Use API.post instead of fetch
+      const { data } = await API.post('/auth/register', {
           fullName: formData.fullName,
           email: formData.email.trim().toLowerCase(),
           password: formData.password,
           idNumber: formData.idNumber,
           department: formData.department,
-          role: 'student' // Default role
-        }),
+          role: 'student' 
       });
 
-      const data = await response.json();
+      // ✅ Axios only reaches here if the response status is 2xx
+      alert('Registration successful! Please log in.');
+      navigate('/login');
 
-      if (response.ok) {
-        alert('Registration successful! Use your new password to log in.');
-        navigate('/login');
-      } else {
-        // This will now show the specific "department" error if it fails
-        alert(data.message || 'Registration failed');
-      }
     } catch (err) {
-      console.error("Connection error:", err);
-      alert('Could not connect to the server. Is your backend running?');
+      // ✅ IMPROVED: This captures the specific message from your AuthController
+      const errorMessage = err.response?.data?.message || 'Registration failed';
+      console.error("Registration Error:", err);
+      alert(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -87,7 +80,6 @@ const Register = () => {
           </div>
 
           <form onSubmit={handleRegister} className="p-10 space-y-4">
-            {/* Full Name */}
             <div className="relative">
               <User className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-300" size={18} />
               <input
@@ -100,7 +92,6 @@ const Register = () => {
               />
             </div>
 
-            {/* ID Number */}
             <div className="relative">
               <Fingerprint className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-300" size={18} />
               <input
@@ -113,7 +104,6 @@ const Register = () => {
               />
             </div>
 
-            {/* Department Dropdown - FIXED LOGIC */}
             <div className="relative">
               <BookOpen className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-300" size={18} />
               <select
@@ -136,7 +126,6 @@ const Register = () => {
               </div>
             </div>
 
-            {/* Email */}
             <div className="relative">
               <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-300" size={18} />
               <input
@@ -149,7 +138,6 @@ const Register = () => {
               />
             </div>
 
-            {/* Password - Ensure users enter 6+ chars */}
             <div className="relative">
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-300" size={18} />
               <input
@@ -173,7 +161,7 @@ const Register = () => {
             <button
               type="submit"
               disabled={loading}
-              className={`w-full py-5 bg-slate-900 text-white font-black rounded-2xl shadow-xl transition active:scale-95 uppercase italic mt-4 ${loading ? 'opacity-50' : 'hover:bg-black'}`}
+              className={`w-full py-5 bg-slate-900 text-white font-black rounded-2xl shadow-xl transition active:scale-95 uppercase italic mt-4 ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-black'}`}
             >
               {loading ? 'Processing...' : 'Register Now'}
             </button>
