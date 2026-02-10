@@ -2,7 +2,7 @@ const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const path = require('path');
-const fs = require('fs'); // Added to check for directories
+const fs = require('fs');
 
 // 1. Load env variables
 dotenv.config();
@@ -10,7 +10,7 @@ dotenv.config();
 // 2. Import connectDB
 const connectDB = require('./config/db.js');
 
-// 3. Connect to Database
+// 3. Connect to Database (We add .then to ensure it's working)
 connectDB();
 
 const app = express();
@@ -18,19 +18,18 @@ const app = express();
 // --- MIDDLEWARE ---
 app.use(cors()); 
 app.use(express.json());
-app.use(express.urlencoded({ extended: true })); // Added to handle form data better
+app.use(express.urlencoded({ extended: true }));
 
 // 📁 ENSURE UPLOADS FOLDER EXISTS
-const uploadDir = path.join(__dirname, '/uploads');
+const uploadDir = path.join(__dirname, 'uploads'); // Removed leading slash for better pathing
 if (!fs.existsSync(uploadDir)){
-    fs.mkdirSync(uploadDir);
+    fs.mkdirSync(uploadDir, { recursive: true });
 }
 
 // 📁 STATIC FOLDER FOR UPLOADS
 app.use('/uploads', express.static(uploadDir));
 
 // --- ROUTES ---
-// These match exactly with your folder structure in image_ce9e2a.png
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/books', require('./routes/bookRoutes'));
 app.use('/api/transactions', require('./routes/transactionRoutes'));
@@ -42,17 +41,20 @@ app.get('/', (req, res) => {
 });
 
 // --- ERROR HANDLING MIDDLEWARE ---
+// This handles 404s
 app.use((req, res, next) => {
   const error = new Error(`Not Found - ${req.originalUrl}`);
   res.status(404);
   next(error);
 });
 
+// This handles all other errors (The Final Guard)
 app.use((err, req, res, next) => {
   const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
   res.status(statusCode).json({
     message: err.message,
-    stack: process.env.NODE_ENV === 'production' ? null : err.stack,
+    // Only show stack trace in development mode
+    stack: process.env.NODE_ENV === 'production' ? '🥞' : err.stack,
   });
 });
 
