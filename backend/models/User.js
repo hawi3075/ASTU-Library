@@ -17,7 +17,7 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: [true, 'Please add a password'],
-    minlength: 6 // This blocks passwords like "123"
+    minlength: 6 
   },
   idNumber: {
     type: String,
@@ -39,24 +39,27 @@ const userSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-// --- FIXED MIDDLEWARE ---
+// --- PASSWORD HASHING MIDDLEWARE ---
+// This runs automatically before the user is saved to MongoDB
 userSchema.pre('save', async function (next) {
-  // 1. Only hash if the password is new or being changed
+  // Only hash the password if it has been modified (or is new)
   if (!this.isModified('password')) {
-    return next(); 
+    return next();
   }
 
   try {
-    // 2. Use asynchronous salt and hash for better performance/compatibility
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
-    
-    // 3. Explicitly call next() to finish the cycle
-    next(); 
-  } catch (error) {
-    // 4. Pass errors to the controller to see them in the browser alert
-    next(error); 
+    next();
+  } catch (err) {
+    next(err);
   }
 });
+
+// --- PASSWORD COMPARISON METHOD ---
+// This is used in authController.js to check if the login password is correct
+userSchema.methods.comparePassword = async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
+};
 
 module.exports = mongoose.model('User', userSchema);
