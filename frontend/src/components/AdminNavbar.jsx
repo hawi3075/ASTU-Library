@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ShieldCheck, BookPlus, User, LogOut, LayoutDashboard } from 'lucide-react';
+import { ShieldCheck, BookPlus, User, LogOut, Library } from 'lucide-react';
 import logo from '../assets/LOGO 2.PNG';
 
 const AdminNavbar = () => {
@@ -10,8 +10,15 @@ const AdminNavbar = () => {
     const menuItems = [
         { name: 'Manage', path: '/admin/dashboard', icon: <ShieldCheck size={18} /> },
         { name: 'Deploy Book', path: '/admin/add-book', icon: <BookPlus size={18} /> },
+        // NEW: Inventory link to manage uploaded books
+        { name: 'Inventory', path: '/admin/inventory', icon: <Library size={18} /> },
         { name: 'Profile', path: '/profile', icon: <User size={18} /> },
     ];
+
+    const handleLogout = () => {
+        localStorage.removeItem('userInfo'); // Matches your Login.jsx storage key
+        navigate('/login');
+    };
 
     return (
         <nav className="flex items-center justify-between px-8 py-4 border-b border-slate-100 sticky top-0 bg-white/90 backdrop-blur-md z-50">
@@ -42,8 +49,9 @@ const AdminNavbar = () => {
                 <div className="h-6 w-[1px] bg-slate-200 mx-2"></div>
 
                 <button 
-                    onClick={() => navigate('/login')}
+                    onClick={handleLogout}
                     className="p-2 text-slate-400 hover:text-red-500 transition-colors"
+                    title="Logout"
                 >
                     <LogOut size={20} />
                 </button>
