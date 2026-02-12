@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const User = require('../models/User'); // Ensure the filename case matches (User.js vs user.js)
 
 const protect = async (req, res, next) => {
   let token;
@@ -8,23 +8,33 @@ const protect = async (req, res, next) => {
     try {
       token = req.headers.authorization.split(' ')[1];
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      
+      // Select everything except password
       req.user = await User.findById(decoded.id).select('-password');
+      
+      if (!req.user) {
+        return res.status(401).json({ message: 'User no longer exists' });
+      }
+
       next();
     } catch (error) {
-      res.status(401).json({ message: 'Not authorized, token failed' });
+      console.error("Token Verification Error:", error.message);
+      return res.status(401).json({ message: 'Not authorized, token failed' });
     }
   }
 
   if (!token) {
-    res.status(401).json({ message: 'Not authorized, no token' });
+    return res.status(401).json({ message: 'Not authorized, no token' });
   }
 };
 
 const admin = (req, res, next) => {
-  if (req.user && req.user.role === 'admin') {
+  // Check both role and isAdmin to be safe based on your Controller logic
+  if (req.user && (req.user.role === 'admin' || req.user.isAdmin === true)) {
     next();
   } else {
-    res.status(403).json({ message: 'Not authorized as an admin' });
+    // This is the source of the 403 Forbidden error in your screenshot
+    res.status(403).json({ message: 'Access denied: Admin permissions required' });
   }
 };
 

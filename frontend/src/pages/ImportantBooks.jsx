@@ -1,24 +1,34 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bookmark, Book, ArrowRight, Trash2 } from 'lucide-react';
-import StudentNavbar from '../components/StudentNavbar'; // Import the Navbar
+import StudentNavbar from '../components/StudentNavbar';
 import AdminNavbar from '../components/AdminNavbar';
 
-const ImportantBooks = ({ books, currentUser }) => {
+const ImportantBooks = ({ books = [], setBooks, currentUser }) => {
     const navigate = useNavigate();
     
     // Safety session recovery
-    const user = currentUser || JSON.parse(localStorage.getItem('user'));
-    const isAdmin = user?.role === 'admin';
+    const user = currentUser || JSON.parse(localStorage.getItem('userInfo')); // Note: 'userInfo' matches typical MERN patterns
+    const isAdmin = user?.role === 'admin' || user?.isAdmin;
 
-    // Filter books that are marked as important/saved
-    // (Assuming you have an 'isImportant' property or similar logic)
+    // 1. Logic to filter books marked as important
     const savedBooks = books.filter(book => book.isImportant === true);
+
+    // 2. Functional Delete handler (Local state update)
+    const handleRemoveFromCollection = (id) => {
+        if (window.confirm("Remove this from your collection?")) {
+            setBooks(prevBooks => 
+                prevBooks.map(book => 
+                    book._id === id ? { ...book, isImportant: false } : book
+                )
+            );
+        }
+    };
 
     if (!user) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-slate-50">
-                <button onClick={() => navigate('/login')} className="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold">
+                <button onClick={() => navigate('/login')} className="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold uppercase tracking-widest text-xs">
                     Please Login to View Collections
                 </button>
             </div>
@@ -27,7 +37,6 @@ const ImportantBooks = ({ books, currentUser }) => {
 
     return (
         <div className="min-h-screen bg-white font-sans text-slate-900">
-            {/* 1. Added the Navbar here */}
             {isAdmin ? <AdminNavbar /> : <StudentNavbar />}
 
             <main className="max-w-6xl mx-auto p-8 pt-12">
@@ -56,11 +65,23 @@ const ImportantBooks = ({ books, currentUser }) => {
                                 <p className="text-slate-500 font-medium text-sm mb-6">
                                     {book.author}
                                 </p>
+                                
                                 <div className="flex items-center justify-between">
-                                    <button className="flex items-center gap-2 text-blue-600 font-black uppercase text-[10px] tracking-widest group-hover:gap-4 transition-all">
+                                    {/* ✅ FUNCTIONAL READ LINK */}
+                                    <a 
+                                        href={`http://localhost:5000${book.fileUrl}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-2 text-blue-600 font-black uppercase text-[10px] tracking-widest group-hover:gap-4 transition-all"
+                                    >
                                         Read Now <ArrowRight size={14} />
-                                    </button>
-                                    <button className="text-slate-300 hover:text-red-500 transition-colors">
+                                    </a>
+
+                                    {/* ✅ FUNCTIONAL DELETE ICON */}
+                                    <button 
+                                        onClick={() => handleRemoveFromCollection(book._id)}
+                                        className="text-slate-300 hover:text-red-500 transition-colors p-2"
+                                    >
                                         <Trash2 size={18} />
                                     </button>
                                 </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 // Pages
 import Landing from './pages/Landing';
@@ -10,20 +10,16 @@ import AddBook from './pages/AddBook';
 import StudentDashboard from './pages/StudentDashboard';
 import Profile from './pages/Profile';
 import ImportantBooks from './pages/ImportantBooks';
-
-// NEW PAGES
 import Inventory from './pages/Inventory';
 import UpdateBook from './pages/UpdateBook';
 
 function App() {
-  // SESSION STATE
   const [currentUser, setCurrentUser] = useState(null);
-  // BOOK STATE
   const [books, setBooks] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   // --- 🛠️ SESSION PERSISTENCE ---
   useEffect(() => {
-    // FIXED: Changed 'user' to 'userInfo' to match Login.jsx logic
     const savedUser = localStorage.getItem('userInfo');
     if (savedUser) {
       try {
@@ -33,9 +29,10 @@ function App() {
         localStorage.removeItem('userInfo');
       }
     }
+    setLoading(false);
   }, []);
 
-  // --- 🌐 FETCH BOOKS FROM MONGODB ---
+  // --- 🌐 FETCH BOOKS ---
   useEffect(() => {
     const fetchBooks = async () => {
       try {
@@ -45,62 +42,83 @@ function App() {
           setBooks(data);
         }
       } catch (error) {
-        console.error("Backend Error: Ensure server.js is running on port 5000");
+        console.error("Backend Error: Ensure server.js is running");
       }
     };
     fetchBooks();
   }, []);
+
+  // --- 🛡️ PROTECTED ROUTE COMPONENTS ---
+  const AdminRoute = ({ children }) => {
+    if (loading) return null;
+    return currentUser && (currentUser.isAdmin || currentUser.role === 'admin') 
+      ? children 
+      : <Navigate to="/login" />;
+  };
+
+  const StudentRoute = ({ children }) => {
+    if (loading) return null;
+    return currentUser ? children : <Navigate to="/login" />;
+  };
 
   return (
     <Router>
       <Routes>
         <Route path="/" element={<Landing />} />
         
+        {/* Redirect logged-in users away from Login/Register */}
         <Route 
           path="/login" 
-          element={<Login setCurrentUser={setCurrentUser} />} 
+          element={currentUser ? (
+            currentUser.isAdmin ? <Navigate to="/admin/dashboard" /> : <Navigate to="/dashboard" />
+          ) : <Login setCurrentUser={setCurrentUser} />} 
         />
         
-        <Route 
-          path="/register" 
-          element={<Register />} 
-        />
+        <Route path="/register" element={<Register />} />
 
-        {/* --- 🛡️ ADMIN ROUTES --- */}
-        <Route 
-          path="/admin/dashboard" 
-          element={<Dashboard books={books} setBooks={setBooks} currentUser={currentUser} />} 
-        />
-        <Route 
-          path="/admin/add-book" 
-          element={<AddBook books={books} setBooks={setBooks} />} 
-        />
+        {/* --- 🛡️ ADMIN ONLY ROUTES --- */}
+        <Route path="/admin/dashboard" element={
+          <AdminRoute>
+            <Dashboard books={books} setBooks={setBooks} currentUser={currentUser} />
+          </AdminRoute>
+        } />
         
-        {/* NEW ADMIN ROUTES */}
-        <Route 
-          path="/admin/inventory" 
-          element={<Inventory />} 
-        />
-        <Route 
-          path="/admin/update-book/:id" 
-          element={<UpdateBook />} 
-        />
+        <Route path="/admin/add-book" element={
+          <AdminRoute>
+            <AddBook books={books} setBooks={setBooks} />
+          </AdminRoute>
+        } />
+
+        <Route path="/admin/inventory" element={
+          <AdminRoute>
+            <Inventory />
+          </AdminRoute>
+        } />
+
+        <Route path="/admin/update-book/:id" element={
+          <AdminRoute>
+            <UpdateBook />
+          </AdminRoute>
+        } />
 
         {/* --- 🎓 STUDENT ROUTES --- */}
-        <Route 
-          path="/dashboard" 
-          element={<StudentDashboard books={books} setBooks={setBooks} currentUser={currentUser} />} 
-        />
+        <Route path="/dashboard" element={
+          <StudentRoute>
+            <StudentDashboard books={books} setBooks={setBooks} currentUser={currentUser} />
+          </StudentRoute>
+        } />
         
-        <Route 
-          path="/profile" 
-          element={<Profile currentUser={currentUser} setCurrentUser={setCurrentUser} />} 
-        />
+        <Route path="/profile" element={
+          <StudentRoute>
+            <Profile currentUser={currentUser} setCurrentUser={setCurrentUser} />
+          </StudentRoute>
+        } />
         
-        <Route 
-          path="/important" 
-          element={<ImportantBooks books={books} setBooks={setBooks} currentUser={currentUser} />} 
-        />
+        <Route path="/important" element={
+          <StudentRoute>
+            <ImportantBooks books={books} setBooks={setBooks} currentUser={currentUser} />
+          </StudentRoute>
+        } />
       </Routes>
     </Router>
   );

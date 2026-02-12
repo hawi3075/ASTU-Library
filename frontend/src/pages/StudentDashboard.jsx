@@ -1,22 +1,37 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Search, Book, Star } from 'lucide-react';
 import StudentNavbar from '../components/StudentNavbar';
+import API from '../services/api';
 
-const StudentDashboard = ({ books = [], setBooks }) => {
+const StudentDashboard = () => {
+  const [books, setBooks] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Toggle Important
+  // 1. Fetch real books from MongoDB
+  useEffect(() => {
+    const fetchBooks = async () => {
+      try {
+        const { data } = await API.get('/books');
+        setBooks(data);
+      } catch (err) {
+        console.error("Failed to fetch books from server");
+      }
+    };
+    fetchBooks();
+  }, []);
+
+  // 2. Toggle Important (Local UI update)
   const toggleImportant = (id) => {
     setBooks((prevBooks) =>
       prevBooks.map((book) =>
-        book.id === id
+        book._id === id // ✅ Matches MongoDB _id
           ? { ...book, isImportant: !book.isImportant }
           : book
       )
     );
   };
 
-  // Search Filter (Optimized)
+  // 3. Search Filter (Optimized)
   const filteredBooks = useMemo(() => {
     return books.filter((book) =>
       `${book.title} ${book.author} ${book.category}`
@@ -30,13 +45,11 @@ const StudentDashboard = ({ books = [], setBooks }) => {
       <StudentNavbar />
 
       <main className="max-w-7xl mx-auto px-6 py-10">
-        {/* Header */}
         <header className="mb-14">
-          <h1 className="text-5xl md:text-6xl font-black tracking-tight mb-6">
+          <h1 className="text-5xl md:text-6xl font-black tracking-tight mb-6 italic uppercase">
             Student <span className="text-blue-600">Hub</span>
           </h1>
 
-          {/* Search */}
           <div className="relative max-w-2xl">
             <Search
               className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400"
@@ -52,7 +65,6 @@ const StudentDashboard = ({ books = [], setBooks }) => {
           </div>
         </header>
 
-        {/* Section Title */}
         <div className="flex items-center justify-between mb-10">
           <h2 className="text-sm font-black uppercase tracking-[0.3em] text-slate-400 flex items-center gap-2">
             <Book size={16} />
@@ -62,21 +74,18 @@ const StudentDashboard = ({ books = [], setBooks }) => {
           </h2>
         </div>
 
-        {/* Books Grid */}
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
           {filteredBooks.map((book) => (
             <div
-              key={book.id}
+              key={book._id} // ✅ Uses MongoDB unique ID
               className="group relative bg-white rounded-[2.5rem] p-8 shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-2"
             >
-              {/* Important Badge */}
               {book.isImportant && (
-                <span className="absolute top-6 left-6 text-[10px] font-black uppercase tracking-widest bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full">
+                <span className="absolute top-6 left-6 text-[10px] font-black uppercase tracking-widest bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full animate-pulse">
                   Important
                 </span>
               )}
 
-              {/* Cover */}
               <div className="h-48 rounded-[2rem] bg-gradient-to-br from-slate-100 to-slate-50 flex items-center justify-center mb-6 group-hover:from-blue-50 group-hover:to-blue-100 transition-all">
                 <Book
                   size={60}
@@ -84,7 +93,6 @@ const StudentDashboard = ({ books = [], setBooks }) => {
                 />
               </div>
 
-              {/* Top Row */}
               <div className="flex items-start justify-between mb-4">
                 <span className="text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 px-4 py-1.5 rounded-full">
                   {book.category}
@@ -92,7 +100,7 @@ const StudentDashboard = ({ books = [], setBooks }) => {
 
                 <button
                   aria-label="Mark as important"
-                  onClick={() => toggleImportant(book.id)}
+                  onClick={() => toggleImportant(book._id)}
                   className="p-2 rounded-full hover:bg-slate-100 active:scale-75 transition"
                 >
                   <Star
@@ -107,23 +115,26 @@ const StudentDashboard = ({ books = [], setBooks }) => {
                 </button>
               </div>
 
-              {/* Book Info */}
-              <h3 className="text-xl font-black uppercase tracking-tight mb-1 leading-snug">
+              <h3 className="text-xl font-black uppercase tracking-tight mb-1 leading-snug italic">
                 {book.title}
               </h3>
               <p className="text-sm text-slate-400 font-semibold mb-8">
                 By {book.author}
               </p>
 
-              {/* Action */}
-              <button className="w-full py-4 rounded-2xl bg-slate-900 text-white font-black uppercase tracking-widest text-xs hover:bg-blue-600 transition-all shadow-lg hover:shadow-blue-200">
+              {/* ✅ FUNCTIONAL PDF LINK */}
+              <a 
+                href={`http://localhost:5000${book.fileUrl}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block w-full py-4 text-center rounded-2xl bg-slate-900 text-white font-black uppercase tracking-widest text-xs hover:bg-blue-600 transition-all shadow-lg hover:shadow-blue-200"
+              >
                 Read Online
-              </button>
+              </a>
             </div>
           ))}
         </div>
 
-        {/* Empty State */}
         {filteredBooks.length === 0 && (
           <div className="mt-20 text-center p-16 rounded-[3rem] bg-white border border-dashed border-slate-200 shadow-sm">
             <p className="text-slate-400 font-black uppercase tracking-widest">
