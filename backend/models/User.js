@@ -11,9 +11,8 @@ const userSchema = new mongoose.Schema({
   location: { type: String, default: "Adama, Ethiopia" }
 }, { timestamps: true });
 
-// --- FIXED MIDDLEWARE ---
+// Hash password before saving
 userSchema.pre('save', async function (next) {
-  // Use 'this' to refer to the user document
   if (!this.isModified('password')) {
     return next();
   }
@@ -21,13 +20,13 @@ userSchema.pre('save', async function (next) {
   try {
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
-    // Directly calling next() here is the safest way
     next();
   } catch (error) {
     next(error);
   }
 });
 
+// Method to compare password
 userSchema.methods.comparePassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
