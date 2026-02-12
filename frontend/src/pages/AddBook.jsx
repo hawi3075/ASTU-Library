@@ -18,7 +18,6 @@ const AddBook = () => {
     title: '',
     author: '',
     category: 'Engineering',
-    description: '',
   });
 
   // Status States
@@ -45,22 +44,31 @@ const AddBook = () => {
       return;
     }
 
-    if (!bookData.title || !bookData.author) {
-      setError('Book title and author are required.');
-      setLoading(false);
-      return;
-    }
-
+    // 1. Prepare FormData
     const formData = new FormData();
     formData.append('title', bookData.title.trim());
     formData.append('author', bookData.author.trim());
     formData.append('category', bookData.category);
-    formData.append('description', bookData.description.trim());
-    formData.append('bookFile', file);
+    
+    // ✅ CRITICAL FIX: Changed from 'bookFile' to 'file' to match backend upload.single('file')
+    formData.append('file', file);
 
     try {
+      // 2. Get Admin Token for Authorization
+      const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+      const token = userInfo?.token;
+
+      if (!token) {
+        setError('Authorization failed. Please log in again.');
+        return;
+      }
+
+      // 3. Send Request
       const response = await fetch('http://localhost:5000/api/books', {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
         body: formData,
       });
 
@@ -68,12 +76,12 @@ const AddBook = () => {
 
       if (response.ok) {
         setIsDeployed(true);
-        setTimeout(() => navigate('/admin/dashboard'), 2000);
+        setTimeout(() => navigate('/admin/inventory'), 2000);
       } else {
-        setError(result.message || 'Deployment failed. Please try again.');
+        setError(result.message || 'Deployment failed.');
       }
     } catch (err) {
-      setError('Server connection failed. Is the backend running?');
+      setError('Connection failed. Is the server on port 5000?');
       console.error('Upload Error:', err);
     } finally {
       setLoading(false);

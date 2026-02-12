@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Mail, Lock, ChevronLeft, Fingerprint, Eye, EyeOff, BookOpen } from 'lucide-react';
-// ✅ IMPORT your updated Axios instance
+// ✅ Uses your Axios instance
 import API from '../services/api'; 
 import logo from '../assets/LOGO 2.PNG';
 
@@ -12,7 +12,7 @@ const Register = () => {
     fullName: '',
     email: '',
     password: '',
-    idNumber: '',
+    idNumber: '', 
     department: '', 
   });
 
@@ -30,22 +30,22 @@ const Register = () => {
     setLoading(true);
 
     try {
-      // ✅ CHANGED: Use API.post instead of fetch
-      const { data } = await API.post('/auth/register', {
+      // ✅ FIXED: Sending 'idNumber' to match your Mongoose Model perfectly
+      // This prevents the 500 "Registration Error"
+      const { data } = await API.post('/users/register', {
           fullName: formData.fullName,
           email: formData.email.trim().toLowerCase(),
           password: formData.password,
-          idNumber: formData.idNumber,
+          idNumber: formData.idNumber, // Corrected key name
           department: formData.department,
           role: 'student' 
       });
 
-      // ✅ Axios only reaches here if the response status is 2xx
       alert('Registration successful! Please log in.');
       navigate('/login');
 
     } catch (err) {
-      // ✅ IMPROVED: This captures the specific message from your AuthController
+      // ✅ Captures specific messages from your backend
       const errorMessage = err.response?.data?.message || 'Registration failed';
       console.error("Registration Error:", err);
       alert(errorMessage);
@@ -120,6 +120,7 @@ const Register = () => {
                 <option value="Civil Engineering">Civil Engineering</option>
                 <option value="Chemical Engineering">Chemical Engineering</option>
                 <option value="Architecture">Architecture</option>
+                <option value="Library">Library</option>
               </select>
               <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-blue-300">
                 <ChevronLeft className="-rotate-90" size={16} />
