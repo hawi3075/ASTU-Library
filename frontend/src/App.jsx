@@ -11,6 +11,10 @@ import StudentDashboard from './pages/StudentDashboard';
 import Profile from './pages/Profile';
 import ImportantBooks from './pages/ImportantBooks';
 
+// NEW PAGES
+import Inventory from './pages/Inventory';
+import UpdateBook from './pages/UpdateBook';
+
 function App() {
   // SESSION STATE
   const [currentUser, setCurrentUser] = useState(null);
@@ -19,13 +23,14 @@ function App() {
 
   // --- 🛠️ SESSION PERSISTENCE ---
   useEffect(() => {
-    const savedUser = localStorage.getItem('user');
+    // FIXED: Changed 'user' to 'userInfo' to match Login.jsx logic
+    const savedUser = localStorage.getItem('userInfo');
     if (savedUser) {
       try {
         setCurrentUser(JSON.parse(savedUser));
       } catch (err) {
         console.error("Session recovery failed");
-        localStorage.removeItem('user');
+        localStorage.removeItem('userInfo');
       }
     }
   }, []);
@@ -69,6 +74,16 @@ function App() {
         <Route 
           path="/admin/add-book" 
           element={<AddBook books={books} setBooks={setBooks} />} 
+        />
+        
+        {/* NEW ADMIN ROUTES */}
+        <Route 
+          path="/admin/inventory" 
+          element={<Inventory />} 
+        />
+        <Route 
+          path="/admin/update-book/:id" 
+          element={<UpdateBook />} 
         />
 
         {/* --- 🎓 STUDENT ROUTES --- */}

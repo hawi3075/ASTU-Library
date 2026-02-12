@@ -18,11 +18,9 @@ const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 app.use('/uploads', express.static(uploadDir));
 
-// Routes
-app.use('/api/auth', require('./routes/authRoutes'));
-app.use('/api/books', require('./routes/bookRoutes'));
-app.use('/api/transactions', require('./routes/transactionRoutes'));
+// Routes - IMPORTANT: server.js is in the root, so use ./routes
 app.use('/api/users', require('./routes/userRoutes'));
+app.use('/api/books', require('./routes/bookRoutes'));
 
 app.get('/', (req, res) => res.send('ASTU Library API is running...'));
 
@@ -41,5 +39,6 @@ app.use((err, req, res, next) => {
   });
 });
 
+// THIS KEEPS THE SERVER RUNNING
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

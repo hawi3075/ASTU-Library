@@ -20,7 +20,8 @@ const Login = ({ setCurrentUser }) => {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      // FIXED: URL changed from /api/auth/login to /api/users/login to match backend
+      const response = await fetch('http://localhost:5000/api/users/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -35,19 +36,18 @@ const Login = ({ setCurrentUser }) => {
 
       if (response.ok) {
         // 1. Save user data to App state
-        setCurrentUser(data.user);
+        setCurrentUser(data);
 
-        // 2. Save to localStorage to persist the session
-        localStorage.setItem('user', JSON.stringify(data.user));
+        // 2. FIXED: Save as 'userInfo' to match the fetch logic in Dashboard.jsx
+        localStorage.setItem('userInfo', JSON.stringify(data));
 
         // 3. Role-based redirect
-        if (data.user.role === 'admin') {
+        if (data.role === 'admin') {
           navigate('/admin/dashboard');
         } else {
           navigate('/dashboard');
         }
       } else {
-        // Displays "Invalid email or password" or other backend messages
         setError(data.message || 'Login failed. Please check your credentials.');
       }
     } catch (err) {
@@ -90,7 +90,7 @@ const Login = ({ setCurrentUser }) => {
           <form onSubmit={handleLogin} className="p-10 space-y-5">
             {error && (
               <div className="bg-red-50 border border-red-100 text-red-600 font-bold text-sm p-4 rounded-2xl flex items-center gap-3">
-                <AlertCircle size={18} /> {error}
+                <span className="shrink-0"><AlertCircle size={18} /></span> {error}
               </div>
             )}
 
