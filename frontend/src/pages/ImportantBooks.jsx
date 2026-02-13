@@ -3,26 +3,46 @@ import { useNavigate } from 'react-router-dom';
 import { Bookmark, Book, ArrowRight, Trash2 } from 'lucide-react';
 import StudentNavbar from '../components/StudentNavbar';
 import AdminNavbar from '../components/AdminNavbar';
+import API from '../services/api'; // Ensure API is imported for database sync
 
 const ImportantBooks = ({ books = [], setBooks, currentUser }) => {
     const navigate = useNavigate();
     
-    // Safety session recovery
-    const user = currentUser || JSON.parse(localStorage.getItem('userInfo')); // Note: 'userInfo' matches typical MERN patterns
+    const user = currentUser || JSON.parse(localStorage.getItem('userInfo'));
     const isAdmin = user?.role === 'admin' || user?.isAdmin;
 
     // 1. Logic to filter books marked as important
     const savedBooks = books.filter(book => book.isImportant === true);
 
-    // 2. Functional Delete handler (Local state update)
-    const handleRemoveFromCollection = (id) => {
+    // 2. Persistent Remove Handler (Syncs with MongoDB)
+    const handleRemoveFromCollection = async (id) => {
         if (window.confirm("Remove this from your collection?")) {
-            setBooks(prevBooks => 
-                prevBooks.map(book => 
-                    book._id === id ? { ...book, isImportant: false } : book
-                )
-            );
+            try {
+                // Optimistic UI update
+                setBooks(prevBooks => 
+                    prevBooks.map(book => 
+                        book._id === id ? { ...book, isImportant: false } : book
+                    )
+                );
+
+                // Sync change to database
+                await API.patch(`/books/${id}/toggle-favorite`);
+            } catch (err) {
+                console.error("Failed to remove book:", err);
+                alert("Session error: Could not update collection on server.");
+                
+                // Optional: Re-fetch books to revert UI on error
+                const { data } = await API.get('/books');
+                setBooks(data);
+            }
         }
+    };
+
+    // 3. Functional PDF Opener (Fixes about:blank#blocked)
+    const openPdf = (pdfUrl) => {
+        if (!pdfUrl) return alert("PDF link not found.");
+        const fullUrl = `http://localhost:5000${pdfUrl}`;
+        window.open(fullUrl, '_blank', 'noopener,noreferrer');
     };
 
     if (!user) {
@@ -40,7 +60,6 @@ const ImportantBooks = ({ books = [], setBooks, currentUser }) => {
             {isAdmin ? <AdminNavbar /> : <StudentNavbar />}
 
             <main className="max-w-6xl mx-auto p-8 pt-12">
-                {/* Page Header */}
                 <div className="mb-12">
                     <h1 className="text-5xl font-black italic uppercase tracking-tighter text-slate-900 flex items-center gap-4">
                         <Bookmark size={48} className="text-blue-600" />
@@ -51,7 +70,6 @@ const ImportantBooks = ({ books = [], setBooks, currentUser }) => {
                     </p>
                 </div>
 
-                {/* Books Grid */}
                 {savedBooks.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {savedBooks.map((book) => (
@@ -67,20 +85,18 @@ const ImportantBooks = ({ books = [], setBooks, currentUser }) => {
                                 </p>
                                 
                                 <div className="flex items-center justify-between">
-                                    {/* ✅ FUNCTIONAL READ LINK */}
-                                    <a 
-                                        href={`http://localhost:5000${book.fileUrl}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
+                                    {/* ✅ FIXED READ LINK */}
+                                    <button 
+                                        onClick={() => openPdf(book.pdfUrl || book.fileUrl)}
                                         className="flex items-center gap-2 text-blue-600 font-black uppercase text-[10px] tracking-widest group-hover:gap-4 transition-all"
                                     >
                                         Read Now <ArrowRight size={14} />
-                                    </a>
+                                    </button>
 
-                                    {/* ✅ FUNCTIONAL DELETE ICON */}
                                     <button 
                                         onClick={() => handleRemoveFromCollection(book._id)}
                                         className="text-slate-300 hover:text-red-500 transition-colors p-2"
+                                        title="Remove from collection"
                                     >
                                         <Trash2 size={18} />
                                     </button>

@@ -6,7 +6,7 @@ const bookSchema = new mongoose.Schema({
     category: { type: String, required: true },
     description: { type: String },
     pdfUrl: { type: String, required: true },
-    // ADD THIS FIELD - This is why it is currently erroring
+    // ADD THIS FIELD NOW
     isImportant: { 
         type: Boolean, 
         default: false 
