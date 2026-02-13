@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-// Ensure this path is correct based on your file structure
+// Ensure this path matches your file structure exactly
 import { AuthContext } from '../context/AuthContext'; 
 import { 
     ShieldCheck, Globe, Mail, Phone, MapPin, Building2, 
@@ -11,7 +11,7 @@ import logo from '../assets/LOGO 2.PNG';
 const Landing = () => {
     const navigate = useNavigate();
     
-    // Check if user is already authenticated to provide a 'Go to Dashboard' option instead
+    // Auth check to determine which buttons to show
     const { user } = useContext(AuthContext) || {}; 
 
     const collectionPreview = [
@@ -68,7 +68,7 @@ const Landing = () => {
                         Empowering Adama Science and Technology University with <span className="underline decoration-blue-400 underline-offset-4">innovative knowledge</span>.
                     </p>
 
-                    {/* --- UPDATED BUTTONS SECTION --- */}
+                    {/* --- DUAL BUTTON SECTION --- */}
                     <div className="flex flex-col sm:flex-row justify-center gap-6">
                         {user ? (
                             <button 
@@ -80,15 +80,17 @@ const Landing = () => {
                             </button>
                         ) : (
                             <>
+                                {/* Primary Action: Sign In */}
                                 <button 
-                                    onClick={() => navigate('/login')} // ✅ CORRECTED: Redirects to Login
+                                    onClick={() => navigate('/login')} 
                                     className="group px-14 py-5 bg-white text-blue-800 font-black rounded-2xl shadow-2xl hover:-translate-y-1 hover:bg-blue-50 transition-all flex items-center justify-center gap-3 cursor-pointer"
                                 >
                                     <LogIn className="w-6 h-6" />
-                                    SIGN IN 
+                                    SIGN IN
                                     <ChevronRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
                                 </button>
                                 
+                                {/* Secondary Action: Register */}
                                 <button 
                                     onClick={() => navigate('/register')}
                                     className="group flex items-center justify-center gap-3 px-14 py-5 bg-blue-600/20 border-2 border-white/50 text-white font-black rounded-2xl backdrop-blur-md hover:bg-white hover:text-blue-900 transition-all shadow-xl cursor-pointer"

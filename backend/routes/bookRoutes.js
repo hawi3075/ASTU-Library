@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-// IMPORTANT: Do NOT use curly braces around Book
 const Book = require('../models/Book'); 
 const { protect, admin } = require('../middleware/authMiddleware');
 const multer = require('multer');
@@ -29,19 +28,24 @@ const upload = multer({
 
 // --- ROUTES ---
 
-// @desc    Get all books
+/**
+ * @desc    Get all books for the Dashboard
+ * @route   GET /api/books
+ */
 router.get('/', async (req, res) => {
     try {
         const books = await Book.find({}).sort({ createdAt: -1 });
         res.json(books);
     } catch (error) {
-        // This log helps debug why the Dashboard is showing 500
         console.error("Dashboard Fetch Error:", error.message);
         res.status(500).json({ message: 'Error fetching books' });
     }
 });
 
-// @desc    Add a new book
+/**
+ * @desc    Add a new book (Admin only)
+ * @route   POST /api/books
+ */
 router.post('/', protect, admin, upload.single('file'), async (req, res) => {
     try {
         const { title, author, category, description } = req.body;
@@ -50,25 +54,53 @@ router.post('/', protect, admin, upload.single('file'), async (req, res) => {
             return res.status(400).json({ message: 'Please upload a PDF file' });
         }
 
-        // 'new Book' will only work if Book is a valid Mongoose Model
         const book = new Book({
             title,
             author,
             category,
             description,
             pdfUrl: `/uploads/${req.file.filename}`, 
-            uploadedBy: req.user._id 
+            uploadedBy: req.user._id,
+            isImportant: false 
         });
 
         const createdBook = await book.save();
         res.status(201).json(createdBook);
     } catch (error) {
-        console.error("Deploy Error:", error.message);
+        console.error("Upload Error:", error.message);
         res.status(500).json({ message: error.message });
     }
 });
 
-// @desc    Update book details
+/**
+ * @desc    Toggle "isImportant" status (The Star Icon)
+ * @route   PATCH /api/books/:id/toggle-favorite
+ * @access  Private (Student/Admin)
+ */
+router.patch('/:id/toggle-favorite', protect, async (req, res) => {
+    try {
+        const book = await Book.findById(req.params.id);
+
+        if (!book) {
+            return res.status(404).json({ message: 'Book not found' });
+        }
+
+        // Toggle the boolean value
+        book.isImportant = !book.isImportant;
+        
+        const updatedBook = await book.save();
+        res.json(updatedBook);
+    } catch (error) {
+        // This log will appear in your VS Code terminal if the database crashes
+        console.error("FAVORITE TOGGLE ERROR:", error.message);
+        res.status(500).json({ message: 'Database failed to update favorite status. Check if isImportant is in your Model.' });
+    }
+});
+
+/**
+ * @desc    Update book details
+ * @route   PUT /api/books/:id
+ */
 router.put('/:id', protect, admin, upload.single('file'), async (req, res) => {
     try {
         const book = await Book.findById(req.params.id);
@@ -92,7 +124,10 @@ router.put('/:id', protect, admin, upload.single('file'), async (req, res) => {
     }
 });
 
-// @desc    Delete book
+/**
+ * @desc    Delete book
+ * @route   DELETE /api/books/:id
+ */
 router.delete('/:id', protect, admin, async (req, res) => {
     try {
         const book = await Book.findById(req.params.id);
