@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Upload, BookOpen, User, Tag, CheckCircle2 } from 'lucide-react';
-import logo from '../assets/LOGO 2.PNG';
+import AdminNavbar from '../components/AdminNavbar'; // Import your updated shared Navbar
 
-const AddBook = ({ handleLogout }) => {
+const AddBook = ({ setCurrentUser }) => {
   const navigate = useNavigate();
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
@@ -30,7 +30,6 @@ const AddBook = ({ handleLogout }) => {
     e.preventDefault();
     setError('');
 
-    // 1. Get Token from Storage
     const savedUser = JSON.parse(localStorage.getItem('userInfo'));
     const token = savedUser?.token;
 
@@ -45,8 +44,6 @@ const AddBook = ({ handleLogout }) => {
     }
 
     setLoading(true);
-    
-    // 2. Prepare Multi-part Form Data
     const formData = new FormData();
     formData.append('title', title.trim());
     formData.append('author', author.trim());
@@ -56,11 +53,7 @@ const AddBook = ({ handleLogout }) => {
     try {
       const response = await fetch('http://localhost:5000/api/books', {
         method: 'POST',
-        headers: {
-          // 3. Attach Authorization Header
-          'Authorization': `Bearer ${token}`
-        },
-        // IMPORTANT: No 'Content-Type' header here for FormData uploads
+        headers: { 'Authorization': `Bearer ${token}` },
         body: formData, 
       });
 
@@ -70,7 +63,6 @@ const AddBook = ({ handleLogout }) => {
         alert("Success: Book Deployed!");
         navigate('/admin/dashboard'); 
       } else {
-        // Capture 500 or 401/403 errors from backend
         setError(data.message || `Error ${response.status}: Deployment failed.`);
       }
     } catch (err) {
@@ -83,15 +75,8 @@ const AddBook = ({ handleLogout }) => {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
-      <nav className="bg-white border-b border-slate-200 px-8 py-4 flex justify-between items-center shadow-sm">
-        <div className="flex items-center gap-3">
-          <img src={logo} alt="ASTU Logo" className="h-8 w-auto" />
-          <span className="font-black text-blue-900 uppercase italic tracking-tighter">Astu Admin</span>
-        </div>
-        <button onClick={handleLogout} className="text-slate-400 hover:text-red-600 font-bold text-[10px] uppercase tracking-widest transition-colors">
-          Sign Out
-        </button>
-      </nav>
+      {/* 1. Shared Admin Navbar replaces the local one */}
+      <AdminNavbar setCurrentUser={setCurrentUser} />
 
       <div className="flex-1 flex items-center justify-center p-6 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-50/50 via-transparent to-transparent">
         <div className="max-w-xl w-full bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden">
