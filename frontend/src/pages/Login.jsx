@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, ChevronLeft, AlertCircle, Eye, EyeOff } from 'lucide-react'; 
+import { Mail, Lock, ChevronLeft, AlertCircle, Eye, EyeOff, UserPlus } from 'lucide-react'; 
 import logo from '../assets/LOGO 2.PNG';
 
 const Login = ({ setCurrentUser }) => {
@@ -30,16 +30,10 @@ const Login = ({ setCurrentUser }) => {
       const data = await response.json();
 
       if (response.ok) {
-        // 1. Clear any old broken sessions first
         localStorage.removeItem('userInfo');
-        
-        // 2. Save fresh data from backend
         localStorage.setItem('userInfo', JSON.stringify(data));
-        
-        // 3. Update global state
         setCurrentUser(data);
 
-        // 4. Redirect based on role with 'replace' to prevent back-button loops
         const isAdmin = data.role === 'admin' || data.isAdmin === true;
         if (isAdmin) {
           navigate('/admin/dashboard', { replace: true }); 
@@ -59,6 +53,7 @@ const Login = ({ setCurrentUser }) => {
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-6 relative overflow-hidden">
+      {/* Background Decoration */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <div className="w-[500px] h-[500px] bg-blue-50 rounded-full blur-3xl opacity-60"></div>
       </div>
@@ -72,6 +67,7 @@ const Login = ({ setCurrentUser }) => {
         </button>
 
         <div className="bg-white rounded-[2.5rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.08)] border border-slate-100 overflow-hidden">
+          {/* Header Section */}
           <div className="bg-blue-50/50 p-10 text-center border-b border-blue-100/50">
             <div className="bg-white p-3 rounded-2xl mb-4 shadow-sm inline-block border border-blue-50">
               <img src={logo} alt="ASTU Logo" className="h-14 w-auto object-contain" />
@@ -131,10 +127,25 @@ const Login = ({ setCurrentUser }) => {
             <button
               type="submit"
               disabled={loading}
-              className={`w-full py-5 bg-blue-600 text-white font-black rounded-2xl shadow-xl transition-all active:scale-95 uppercase italic tracking-widest text-xs mt-4 ${loading ? 'opacity-70' : 'hover:bg-blue-700'}`}
+              className={`w-full py-5 bg-blue-600 text-white font-black rounded-2xl shadow-xl transition-all active:scale-95 uppercase italic tracking-widest text-xs mt-4 mb-8 ${loading ? 'opacity-70' : 'hover:bg-blue-700'}`}
             >
               {loading ? 'Authenticating...' : 'Enter Library'}
             </button>
+
+            {/* ✅ NEW REGISTER SECTION */}
+            <div className="pt-6 border-t border-slate-50 text-center">
+               <p className="text-slate-400 text-[9px] font-black uppercase tracking-[0.3em] mb-3">
+                 New to the system?
+               </p>
+               <button 
+                 type="button"
+                 onClick={() => navigate('/register')}
+                 className="group flex items-center justify-center gap-2 mx-auto text-blue-600 font-black uppercase italic text-[11px] tracking-tight hover:gap-4 transition-all"
+               >
+                 <UserPlus size={14} className="text-blue-400 group-hover:text-blue-600" />
+                 Create Student Account
+               </button>
+            </div>
           </form>
         </div>
       </div>
