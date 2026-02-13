@@ -1,5 +1,6 @@
 import React, { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
+// Ensure this path is correct based on your file structure
 import { AuthContext } from '../context/AuthContext'; 
 import { 
     ShieldCheck, Globe, Mail, Phone, MapPin, Building2, 
@@ -10,8 +11,8 @@ import logo from '../assets/LOGO 2.PNG';
 const Landing = () => {
     const navigate = useNavigate();
     
-    // We check the AuthContext to see if a user is already logged in
-    const { user } = useContext(AuthContext); 
+    // Check if user is already authenticated to provide a 'Go to Dashboard' option instead
+    const { user } = useContext(AuthContext) || {}; 
 
     const collectionPreview = [
         { 
@@ -51,7 +52,7 @@ const Landing = () => {
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col font-sans selection:bg-blue-100">
             {/* --- Hero Section --- */}
-            <header className="relative bg-[#1e40af] py-20 px-6 text-white text-center overflow-hidden">
+            <header className="relative bg-[#1e40af] py-24 px-6 text-white text-center overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-full opacity-20">
                    <div className="absolute -top-24 -left-24 w-96 h-96 bg-blue-400 rounded-full blur-3xl animate-pulse"></div>
                    <div className="absolute top-1/2 -right-24 w-64 h-64 bg-indigo-400 rounded-full blur-3xl"></div>
@@ -69,22 +70,34 @@ const Landing = () => {
 
                     {/* --- UPDATED BUTTONS SECTION --- */}
                     <div className="flex flex-col sm:flex-row justify-center gap-6">
-                        <button 
-                            onClick={() => navigate('/login')}
-                            className="group px-14 py-5 bg-white text-blue-800 font-black rounded-2xl shadow-2xl hover:-translate-y-1 hover:bg-blue-50 transition-all flex items-center justify-center gap-3 cursor-pointer"
-                        >
-                            <LogIn className="w-6 h-6" />
-                            SIGN IN 
-                            <ChevronRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
-                        </button>
-                        
-                        <button 
-                            onClick={() => navigate('/register')}
-                            className="group flex items-center justify-center gap-3 px-14 py-5 bg-blue-600/20 border-2 border-white/50 text-white font-black rounded-2xl backdrop-blur-md hover:bg-white hover:text-blue-900 transition-all shadow-xl cursor-pointer"
-                        >
-                            <Zap className="w-6 h-6 text-yellow-400 group-hover:animate-bounce" />
-                            JOIN NOW
-                        </button>
+                        {user ? (
+                            <button 
+                                onClick={() => navigate(user.role === 'admin' ? '/admin/dashboard' : '/dashboard')}
+                                className="group px-14 py-5 bg-white text-blue-800 font-black rounded-2xl shadow-2xl hover:-translate-y-1 hover:bg-blue-50 transition-all flex items-center justify-center gap-3 cursor-pointer"
+                            >
+                                GO TO DASHBOARD
+                                <ChevronRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
+                            </button>
+                        ) : (
+                            <>
+                                <button 
+                                    onClick={() => navigate('/login')} // ✅ CORRECTED: Redirects to Login
+                                    className="group px-14 py-5 bg-white text-blue-800 font-black rounded-2xl shadow-2xl hover:-translate-y-1 hover:bg-blue-50 transition-all flex items-center justify-center gap-3 cursor-pointer"
+                                >
+                                    <LogIn className="w-6 h-6" />
+                                    SIGN IN 
+                                    <ChevronRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
+                                </button>
+                                
+                                <button 
+                                    onClick={() => navigate('/register')}
+                                    className="group flex items-center justify-center gap-3 px-14 py-5 bg-blue-600/20 border-2 border-white/50 text-white font-black rounded-2xl backdrop-blur-md hover:bg-white hover:text-blue-900 transition-all shadow-xl cursor-pointer"
+                                >
+                                    <Zap className="w-6 h-6 text-yellow-400 group-hover:animate-bounce" />
+                                    JOIN NOW
+                                </button>
+                            </>
+                        )}
                     </div>
                 </div>
 

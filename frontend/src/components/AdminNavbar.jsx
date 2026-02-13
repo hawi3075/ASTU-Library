@@ -3,21 +3,29 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { ShieldCheck, BookPlus, User, LogOut, Library } from 'lucide-react';
 import logo from '../assets/LOGO 2.PNG';
 
-const AdminNavbar = () => {
+// Add setCurrentUser to the props
+const AdminNavbar = ({ setCurrentUser }) => {
     const navigate = useNavigate();
     const location = useLocation();
 
     const menuItems = [
         { name: 'Manage', path: '/admin/dashboard', icon: <ShieldCheck size={18} /> },
         { name: 'Deploy Book', path: '/admin/add-book', icon: <BookPlus size={18} /> },
-        // NEW: Inventory link to manage uploaded books
         { name: 'Inventory', path: '/admin/inventory', icon: <Library size={18} /> },
         { name: 'Profile', path: '/profile', icon: <User size={18} /> },
     ];
 
     const handleLogout = () => {
-        localStorage.removeItem('userInfo'); // Matches your Login.jsx storage key
-        navigate('/login');
+        // 1. Clear the local storage
+        localStorage.removeItem('userInfo'); 
+        
+        // 2. Clear the global state so ProtectedRoutes trigger immediately
+        if (setCurrentUser) {
+            setCurrentUser(null);
+        }
+
+        // 3. Force navigation to landing page rather than login to ensure a clean slate
+        navigate('/', { replace: true });
     };
 
     return (
@@ -50,7 +58,7 @@ const AdminNavbar = () => {
 
                 <button 
                     onClick={handleLogout}
-                    className="p-2 text-slate-400 hover:text-red-500 transition-colors"
+                    className="p-2 text-slate-400 hover:text-red-500 transition-colors flex items-center justify-center"
                     title="Logout"
                 >
                     <LogOut size={20} />

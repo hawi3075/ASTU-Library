@@ -6,26 +6,21 @@ import logo from '../assets/LOGO 2.PNG';
 const Login = ({ setCurrentUser }) => {
   const navigate = useNavigate();
 
-  // State
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // --- 🌐 DATABASE LOGIN LOGIC ---
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
     try {
-      // FIXED: URL changed from /api/auth/login to /api/users/login to match backend
       const response = await fetch('http://localhost:5000/api/users/login', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: email.trim().toLowerCase(),
           password: password,
@@ -35,115 +30,111 @@ const Login = ({ setCurrentUser }) => {
       const data = await response.json();
 
       if (response.ok) {
-        // 1. Save user data to App state
+        // 1. Clear any old broken sessions first
+        localStorage.removeItem('userInfo');
+        
+        // 2. Save fresh data from backend
+        localStorage.setItem('userInfo', JSON.stringify(data));
+        
+        // 3. Update global state
         setCurrentUser(data);
 
-        // 2. FIXED: Save as 'userInfo' to match the fetch logic in Dashboard.jsx
-        localStorage.setItem('userInfo', JSON.stringify(data));
-
-        // 3. Role-based redirect
-        if (data.role === 'admin') {
-          navigate('/admin/dashboard');
+        // 4. Redirect based on role with 'replace' to prevent back-button loops
+        const isAdmin = data.role === 'admin' || data.isAdmin === true;
+        if (isAdmin) {
+          navigate('/admin/dashboard', { replace: true }); 
         } else {
-          navigate('/dashboard');
+          navigate('/dashboard', { replace: true }); 
         }
       } else {
-        setError(data.message || 'Login failed. Please check your credentials.');
+        setError(data.message || 'Invalid email or password.');
       }
     } catch (err) {
       console.error("Login connection error:", err);
-      setError('Cannot connect to server. Ensure your backend is running on port 5000.');
+      setError('Server connection failed. Is the backend running?');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-6 relative">
-      <div className="absolute inset-0 flex items-center justify-center">
+    <div className="min-h-screen bg-white flex items-center justify-center p-6 relative overflow-hidden">
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <div className="w-[500px] h-[500px] bg-blue-50 rounded-full blur-3xl opacity-60"></div>
       </div>
 
       <div className="max-w-md w-full relative z-10">
         <button
           onClick={() => navigate('/')}
-          className="mb-6 text-slate-400 hover:text-blue-600 flex items-center gap-2 font-bold transition uppercase text-xs tracking-widest"
+          className="mb-6 text-slate-400 hover:text-blue-600 flex items-center gap-2 font-bold transition uppercase text-[10px] tracking-[0.2em]"
         >
-          <ChevronLeft size={16} /> Back to Home
+          <ChevronLeft size={14} /> Back to Home
         </button>
 
-        <div className="bg-white rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-slate-100 overflow-hidden">
-          {/* Header */}
-          <div className="bg-blue-50 p-10 text-center border-b border-blue-100">
-            <div className="bg-white p-3 rounded-2xl mb-6 shadow-sm inline-block border border-blue-50">
-              <img src={logo} alt="ASTU Logo" className="h-16 w-auto" />
+        <div className="bg-white rounded-[2.5rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.08)] border border-slate-100 overflow-hidden">
+          <div className="bg-blue-50/50 p-10 text-center border-b border-blue-100/50">
+            <div className="bg-white p-3 rounded-2xl mb-4 shadow-sm inline-block border border-blue-50">
+              <img src={logo} alt="ASTU Logo" className="h-14 w-auto object-contain" />
             </div>
-            <h2 className="text-2xl font-black text-blue-900 uppercase italic tracking-tight">
-              Portal Sign In
+            <h2 className="text-2xl font-black text-blue-900 uppercase italic tracking-tighter">
+              Astu <span className="text-blue-600">Digital</span>
             </h2>
-            <p className="text-blue-600/60 text-xs font-bold mt-2 tracking-widest uppercase">
-              Academic Access
+            <p className="text-slate-400 text-[10px] font-black mt-2 tracking-[0.3em] uppercase">
+              Academic Portal Access
             </p>
           </div>
 
-          {/* Form */}
-          <form onSubmit={handleLogin} className="p-10 space-y-5">
+          <form onSubmit={handleLogin} className="p-10 space-y-4">
             {error && (
-              <div className="bg-red-50 border border-red-100 text-red-600 font-bold text-sm p-4 rounded-2xl flex items-center gap-3">
-                <span className="shrink-0"><AlertCircle size={18} /></span> {error}
+              <div className="bg-red-50 border border-red-100 text-red-600 font-bold text-xs p-4 rounded-xl flex items-center gap-3">
+                <AlertCircle size={16} className="shrink-0" /> {error}
               </div>
             )}
 
-            <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-300" size={18} />
-              <input
-                type="email"
-                placeholder="University Email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 ring-blue-500/20 font-medium transition"
-              />
+            <div className="space-y-1">
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Email Address</label>
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-300" size={18} />
+                <input
+                  type="email"
+                  placeholder="name@astu.edu.et"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/10 font-medium"
+                />
+              </div>
             </div>
 
-            <div className="relative">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-300" size={18} />
-              <input
-                type={showPassword ? "text" : "password"}
-                placeholder="Password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-12 pr-12 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 ring-blue-500/20 font-medium transition"
-              />
-              
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-blue-300 hover:text-blue-600 transition p-1"
-              >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
+            <div className="space-y-1">
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Secure Password</label>
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-300" size={18} />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pl-12 pr-12 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/10 font-medium"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-blue-300 hover:text-blue-600 transition p-1"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className={`w-full py-5 bg-blue-600 text-white font-black rounded-2xl shadow-lg shadow-blue-100 transition active:scale-95 uppercase italic ${loading ? 'opacity-70 cursor-not-allowed' : 'hover:bg-blue-700'}`}
+              className={`w-full py-5 bg-blue-600 text-white font-black rounded-2xl shadow-xl transition-all active:scale-95 uppercase italic tracking-widest text-xs mt-4 ${loading ? 'opacity-70' : 'hover:bg-blue-700'}`}
             >
-              {loading ? 'Verifying...' : 'Access Library'}
+              {loading ? 'Authenticating...' : 'Enter Library'}
             </button>
-
-            <p className="text-center font-bold text-sm text-slate-400">
-              New student?{' '}
-              <button
-                type="button"
-                onClick={() => navigate('/register')}
-                className="text-blue-600 hover:underline font-bold"
-              >
-                Create Account
-              </button>
-            </p>
           </form>
         </div>
       </div>
