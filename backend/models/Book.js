@@ -5,9 +5,9 @@ const bookSchema = new mongoose.Schema({
   author: { type: String, required: true },
   category: { type: String, required: true },
   description: { type: String },
-  fileUrl: { type: String, required: true }, // Path to the PDF
-  uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  createdAt: { type: Date, default: Date.now }
-});
+  pdfUrl: { type: String, required: true }, // Ensure this matches your route
+  uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+}, { timestamps: true });
 
+// Ensure the export is a direct model, not an object
 module.exports = mongoose.model('Book', bookSchema);

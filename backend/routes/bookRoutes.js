@@ -1,25 +1,24 @@
 const express = require('express');
 const router = express.Router();
-const Book = require('../models/Book');
+// IMPORTANT: Do NOT use curly braces around Book
+const Book = require('../models/Book'); 
 const { protect, admin } = require('../middleware/authMiddleware');
 const multer = require('multer');
 const path = require('path');
 
 // --- MULTER CONFIGURATION ---
-// Handles saving PDFs to the 'uploads' folder
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, 'uploads/');
     },
     filename: (req, file, cb) => {
-        cb(null, `${Date.now()}-${file.originalname}`);
+        cb(null, `${Date.now()}-${file.originalname.replace(/\s+/g, '_')}`);
     }
 });
 
 const upload = multer({ 
     storage,
     fileFilter: (req, file, cb) => {
-        // Ensure only PDFs are uploaded
         if (file.mimetype === 'application/pdf') {
             cb(null, true);
         } else {
@@ -31,58 +30,45 @@ const upload = multer({
 // --- ROUTES ---
 
 // @desc    Get all books
-// @route   GET /api/books
 router.get('/', async (req, res) => {
     try {
         const books = await Book.find({}).sort({ createdAt: -1 });
         res.json(books);
     } catch (error) {
+        // This log helps debug why the Dashboard is showing 500
+        console.error("Dashboard Fetch Error:", error.message);
         res.status(500).json({ message: 'Error fetching books' });
     }
 });
 
-// @desc    Get single book by ID
-// @route   GET /api/books/:id
-router.get('/:id', async (req, res) => {
-    try {
-        const book = await Book.findById(req.params.id);
-        if (book) {
-            res.json(book);
-        } else {
-            res.status(404).json({ message: 'Book not found' });
-        }
-    } catch (error) {
-        res.status(500).json({ message: 'Invalid Book ID' });
-    }
-});
-
-// @desc    Add a new book (Librarian Portal)
-// @route   POST /api/books
+// @desc    Add a new book
 router.post('/', protect, admin, upload.single('file'), async (req, res) => {
     try {
-        const { title, author, category } = req.body;
+        const { title, author, category, description } = req.body;
         
         if (!req.file) {
             return res.status(400).json({ message: 'Please upload a PDF file' });
         }
 
+        // 'new Book' will only work if Book is a valid Mongoose Model
         const book = new Book({
             title,
             author,
             category,
-            fileUrl: `/uploads/${req.file.filename}`, // Relative path for frontend
+            description,
+            pdfUrl: `/uploads/${req.file.filename}`, 
+            uploadedBy: req.user._id 
         });
 
         const createdBook = await book.save();
         res.status(201).json(createdBook);
     } catch (error) {
         console.error("Deploy Error:", error.message);
-        res.status(500).json({ message: 'Server error during book deployment' });
+        res.status(500).json({ message: error.message });
     }
 });
 
-// @desc    Update book details & file
-// @route   PUT /api/books/:id
+// @desc    Update book details
 router.put('/:id', protect, admin, upload.single('file'), async (req, res) => {
     try {
         const book = await Book.findById(req.params.id);
@@ -90,9 +76,10 @@ router.put('/:id', protect, admin, upload.single('file'), async (req, res) => {
             book.title = req.body.title || book.title;
             book.author = req.body.author || book.author;
             book.category = req.body.category || book.category;
+            book.description = req.body.description || book.description;
             
             if (req.file) {
-                book.fileUrl = `/uploads/${req.file.filename}`;
+                book.pdfUrl = `/uploads/${req.file.filename}`;
             }
 
             const updatedBook = await book.save();
@@ -106,7 +93,6 @@ router.put('/:id', protect, admin, upload.single('file'), async (req, res) => {
 });
 
 // @desc    Delete book
-// @route   DELETE /api/books/:id
 router.delete('/:id', protect, admin, async (req, res) => {
     try {
         const book = await Book.findById(req.params.id);
